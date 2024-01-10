@@ -6,7 +6,7 @@
 - add the following job to be triggered first
 ```
     secrets-scanning:
-      uses: pbs/gha-public-workflows/secrets-scanning.yml@main
+      uses: pbs/gha-public-workflows/.github/workflows/secrets-scanning.yml@main
       permissions:
         contents: read
         id-token: write
