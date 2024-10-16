@@ -1,0 +1,113 @@
+name: Template - Deploy Service
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        type: string
+        description: 'Environment'
+        required: true
+      ecs_cluster:
+        type: string
+        description: 'ECS cluster name'
+        required: true
+      ecs_service:
+        type: string
+        description: 'ECS service name'
+        required: true
+      image_name:
+        type: string
+        description: 'Docker image name'
+        required: true
+      image_tag:
+        type: string
+        description: 'Docker image tag'
+        default: "latest"
+        required: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    environment:
+      name: ${{ inputs.env }}
+      url: ${{ vars.APP_URL }}
+    steps:
+    - name: Assume aws role
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ vars.AWS_REGION }}
+        role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
+
+    - id: slack
+      uses: slackapi/slack-github-action@v1.26.0
+      with:
+        channel-id: ${{ vars.SLACK_CHANNEL_ID }}
+        payload: |
+          {
+            "text": "[${{ vars.APP_NAME }} ${{ inputs.env }}] Run ${{ inputs.ecs_service }} task",
+            "attachments": [
+              {
+                "color": "${{ env.SLACK_COLOR }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "short": true,
+                    "value": "In Progress"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_COLOR: dbab09
+
+    - name: Deploy ${{ inputs.ecs_service }}
+      id: deploy
+      uses: silinternational/ecs-deploy@master
+      with:
+        cluster_cmd: "--cluster"
+        cluster: "education"
+        image_cmd: '--image'
+        image: "${{ env.DOCKER_REGISTRY }}/${{ inputs.image_name }}:${{ inputs.image_tag }}"
+        region_cmd: "--region"
+        region: ${{ vars.AWS_REGION }}
+        service_name_cmd: '--service-name'
+        service_name: "${{ inputs.ecs_service }}"
+        timeout_cmd: "--timeout"
+        timeout: "600"
+        force_new_deployment_cmd: "--force-new-deployment"
+      env:
+        DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+      continue-on-error: true
+
+    - uses: slackapi/slack-github-action@v1.26.0
+      with:
+        channel-id: ${{ vars.SLACK_CHANNEL_ID }}
+        update-ts: ${{ steps.slack.outputs.ts }}
+        payload: |
+          {
+            "text": "[${{ vars.APP_NAME }} ${{ inputs.env }}] Run ${{ inputs.ecs_service }} task - completed",
+            "attachments": [
+              {
+                "color": "${{ env.SLACK_COLOR }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "short": true,
+                    "value": "${{ steps.deploy.outcome }}"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_COLOR: ${{ steps.deploy.outcome == 'success' && '90ee90' || 'ff0000' }}
+
+    - name: Set job end status
+      if: steps.deploy.outcome != 'success'
+      run: |
+        if [ "${{ steps.deploy.outcome }}" == "failure" ]; then
+          echo "::error step=build::Failed to deploy ${{ inputs.ecs_service }}"; exit 1
+        fi

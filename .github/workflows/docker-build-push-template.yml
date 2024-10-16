@@ -1,0 +1,210 @@
+name: Template - Docker Build/Test/Push
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        type: string
+        description: 'Environment'
+        required: true
+      before_command:
+        type: string
+        description: '(Optional) Command to prepare the environment'
+        required: false
+        default: ''
+      test_command:
+        type: string
+        description: 'Command to test the docker image (runs inside the container)'
+        required: false
+        default: ''
+      after_command:
+        type: string
+        description: '(Optional) Command to teardown the environment'
+        required: false
+        default: ''
+      assume_aws_role:
+        type: boolean
+        description: 'Assume AWS role'
+        required: false
+        default: true
+      ecr_login:
+        type: boolean
+        description: 'Login to ECR'
+        required: false
+        default: true
+      image_name:
+        description: 'Docker image name'
+        required: true
+        type: string
+      image_build_tag:
+        description: 'Docker image build tag'
+        required: false
+        type: string
+        default: latest
+      image_test_tag:
+        description: 'Docker image test tag'
+        required: false
+        type: string
+        default: 'test'
+      dockerfile:
+        description: 'Path to the Dockerfile'
+        required: false
+        default: './Dockerfile'
+        type: string
+      context:
+        description: 'Build context for Docker'
+        required: false
+        default: '.'
+        type: string
+
+env:
+  APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
+  DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+    steps:
+      # Get code, permissions and set environment
+      - name: Checkout code
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Assume AWS role
+        if: inputs.assume_aws_role == true
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
+
+      - name: Login to Amazon ECR
+        if: inputs.ecr_login == true
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Run preparation
+        if: inputs.before_command != ''
+        id: before-command
+        run: ${{ inputs.before_command }}
+
+
+      # Docker image build
+      - uses: ./.github/actions/slack-message
+        if: ${{ vars.SLACK_CHANNEL_ID }} != ''
+        id: slack-build
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          text: "[${{ env.APP_NAME }} ${{ inputs.env }}] Docker image build - Started"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+  
+      - name: Create and use a new builder instance
+        run: |
+          docker buildx create --name builder --use
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        id: build-image
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          load: true
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
+          builder: builder
+          cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
+          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
+
+      - uses: ./.github/actions/slack-message
+        if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          text: "[${{ env.APP_NAME }} ${{ inputs.env }}] Docker image build - Completed"
+          status: ${{ steps.build-image.outcome }}
+          update: ${{ steps.slack-build.outputs.update }}
+
+
+      # Docker image test
+      - uses: ./.github/actions/slack-message
+        if: ${{ vars.SLACK_CHANNEL_ID }} != ''
+        id: slack-test
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          text: "[${{ env.APP_NAME }} ${{ inputs.env }}] Docker image test - Started"
+
+      - name: Test Docker image
+        if: ${{ inputs.test_command }} != ""
+        id: test-image
+        run: |
+          docker run --rm ${{ inputs.image_test_tag }} ${{ inputs.test_command }}
+
+      - uses: ./.github/actions/slack-message
+        if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          text: "[${{ env.APP_NAME }} ${{ inputs.env }}] Docker image build - Completed"
+          status: ${{ steps.test-image.outcome }}
+          update: ${{ steps.slack-test.outputs.update }}
+        
+
+      # Docker image push
+      - uses: ./.github/actions/slack-message
+        if: ${{ vars.SLACK_CHANNEL_ID }} != ''
+        id: slack-push
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          text: "[${{ env.APP_NAME }} ${{ inputs.env }}] Docker image push - Started"
+  
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        id: push-image
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
+
+      - uses: ./.github/actions/slack-message
+        if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          text: "[${{ env.APP_NAME }} ${{ inputs.env }}] Docker image push - Complete"
+          status: ${{ steps.push-image.outcome }}
+          update: ${{ steps.slack-push.outputs.update }}
+
+
+      # Teardown and job end status
+      - name: Run teardown
+        if: ( success() || failure() ) && inputs.after_command != ''
+        id: after-command
+        run: ${{ inputs.after_command }}
+        continue-on-error: true
+
+      - name: Set job end status
+        if: success() || failure()
+        run: |
+          if [ "${{ steps.before-command.outcome }}" == "failure" ]; then
+            echo "::error step=before-command::Failed to run preparation for ${{ inputs.image_name }} image build"; exit 1
+          fi
+
+          if [ "${{ steps.build-image.outcome }}" == "failure" ]; then
+            echo "::error step=build-image::Failed to build the ${{ inputs.image_name }} image!"; exit 2
+          fi
+
+          if [ "${{ steps.test-image.outcome }}" == "failure" ]; then
+            echo "::error step=test-image::Failed to test the ${{ inputs.image_name }} image!"; exit 3
+          if
+
+          if [ "${{ steps.push-image.outcome }}" == "failure" ]; then
+            echo "::error step=push-image::Failed to push the ${{ inputs.image_name }} image!"; exit 4
+          if
+
+          if [ "${{ steps.after-command.outcome }}" == "failure" ]; then
+            echo "::warning step=after-command::Failed to run teardown for ${{ inputs.image_name }} image build"; exit 0
+          fi

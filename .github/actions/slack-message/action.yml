@@ -1,0 +1,111 @@
+name: Send Slack message to channel
+
+description: 'Send Slack message to channel'
+
+inputs:
+  token:
+    description: 'Slack bot token'
+    required: true
+  channel_id:
+    description: 'Slack channel id'
+    required: true
+  text:
+    description: 'Slack message'
+    required: true
+  status:
+    description: 'Status to send to Slack for this message'
+    required: false
+    default: in progress
+  update:
+    description: 'Update previous Slack message with ts identifier'
+    required: false
+    default: ''
+  reply:
+    description: 'Reply previous Slack message with ts indentifier'
+    required: false
+    default: ''
+
+outputs:
+  update:
+    description: "Slack update ts"
+    value: ${{ steps.slack.outputs.ts }}
+
+runs:
+  using: "composite"
+  continue-on-error: true
+  steps:
+    - id: color
+      shell: bash
+      env:
+        status: ${{ inputs.status }}
+      run: |
+        set -x
+        status_lower=$(echo "$status" | tr '[:upper:]' '[:lower:]')
+        if [[ "$status_lower" == "success" ]]; then
+          echo "COLOR=90ee90" >> $GITHUB_OUTPUT
+        elif [[ "$status_lower" == "failed" ]]; then
+          echo "COLOR=ff0000" >> $GITHUB_OUTPUT
+        else
+          echo "COLOR=dbab09" >> $GITHUB_OUTPUT
+        fi
+
+    - id: slack
+      if: inputs.update == ''
+      uses: slackapi/slack-github-action@v1.26.0
+      with:
+        channel-id: ${{ inputs.channel_id }}
+        payload: |
+          {
+            "text": "[${{ inputs.text }}",
+            "attachments": [
+              {
+                "color": "${{ steps.color.outputs.COLOR }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "short": true,
+                    "value": "${{ inputs.status }}"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ inputs.token }}
+
+    - uses: slackapi/slack-github-action@v1.26.0
+      if: inputs.update != ''
+      with:
+        channel-id: ${{ inputs.channel_id }}
+        update-ts: ${{ inputs.update }}
+        payload: |
+          {
+            "text": "[${{ inputs.text }}",
+            "attachments": [
+              {
+                "color": "${{ steps.color.outputs.COLOR }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "short": true,
+                    "value": "${{ inputs.status }}"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ inputs.token }}
+
+    - uses: slackapi/slack-github-action@v1.26.0
+      if: inputs.reply != ''
+      with:
+        channel-id: ${{ inputs.channel_id }}
+        update-ts: ${{ inputs.update }}
+        payload: |
+          {
+            "text": "[${{ inputs.text }}",
+            "thread_ts": "${{ inputs.reply }}"
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ inputs.token }}
