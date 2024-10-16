@@ -47,6 +47,7 @@ runs:
         else
           echo "COLOR=dbab09" >> $GITHUB_OUTPUT
         fi
+      continue-on-error: true
 
     - id: slack
       if: inputs.update == ''
@@ -71,6 +72,7 @@ runs:
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
+      continue-on-error: true
 
     - uses: slackapi/slack-github-action@v1.26.0
       if: inputs.update != ''
@@ -95,6 +97,7 @@ runs:
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
+      continue-on-error: true
 
     - uses: slackapi/slack-github-action@v1.26.0
       if: inputs.reply != ''
@@ -108,3 +111,4 @@ runs:
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
+      continue-on-error: true
