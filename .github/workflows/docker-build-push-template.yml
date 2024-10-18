@@ -32,6 +32,16 @@ on:
         description: 'Login to ECR'
         required: false
         default: true
+      secrets_scan:
+        type: boolean
+        description: 'Scan code for secrets before build'
+        required: false
+        default: true
+      sbom:
+        type: boolean
+        description: 'Retrieve and push the Docker image SBOM'
+        required: false
+        default: false
       image_name:
         description: 'Docker image name'
         required: true
@@ -72,6 +82,12 @@ jobs:
         with:
           fetch-depth: 0
 
+
+      # Secrets scanning
+      - name: Secrets scan
+        if: inputs.secrets_scan == true
+        uses: ./.github/actions/secrets-scanning
+
       - name: Assume AWS role
         if: inputs.assume_aws_role == true
         uses: aws-actions/configure-aws-credentials@v4
@@ -90,7 +106,8 @@ jobs:
 
 
       # Docker image build
-      - uses: ./.github/actions/slack-message
+      - name: Update Slack
+        uses: ./.github/actions/slack-message
         if: ${{ vars.SLACK_CHANNEL_ID }} != ''
         id: slack-build
         with:
@@ -101,7 +118,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
   
-      - name: Create and use a new builder instance
+      - name: Create and use a builder instance
         run: |
           docker buildx create --name builder --use
 
@@ -117,7 +134,8 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
           cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
 
-      - uses: ./.github/actions/slack-message
+      - name: Update Slack
+        uses: ./.github/actions/slack-message
         if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -128,7 +146,8 @@ jobs:
 
 
       # Docker image test
-      - uses: ./.github/actions/slack-message
+      - name: Update Slack
+        uses: ./.github/actions/slack-message
         if: ${{ vars.SLACK_CHANNEL_ID }} != ''
         id: slack-test
         with:
@@ -142,18 +161,20 @@ jobs:
         run: |
           docker run --rm ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }} ${{ inputs.test_command }}
 
-      - uses: ./.github/actions/slack-message
+      - name: Update Slack
+        uses: ./.github/actions/slack-message
         if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          text: "[${{ env.APP_NAME }} ${{ inputs.env }}] Docker image build - Completed"
+          text: "[${{ env.APP_NAME }} ${{ inputs.env }}] Docker image test - Completed"
           status: ${{ steps.test-image.outcome }}
           update: ${{ steps.slack-test.outputs.update }}
-        
 
+          
       # Docker image push
-      - uses: ./.github/actions/slack-message
+      - name: Update Slack
+        uses: ./.github/actions/slack-message
         if: ${{ vars.SLACK_CHANNEL_ID }} != ''
         id: slack-push
         with:
@@ -168,7 +189,8 @@ jobs:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
 
-      - uses: ./.github/actions/slack-message
+      - name: Update Slack
+        uses: ./.github/actions/slack-message
         if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -176,6 +198,16 @@ jobs:
           text: "[${{ env.APP_NAME }} ${{ inputs.env }}] Docker image push - Complete"
           status: ${{ steps.push-image.outcome }}
           update: ${{ steps.slack-push.outputs.update }}
+
+
+      # Get and publish image SBOM
+      - name: Retrieve SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
+          format: cyclonedx-json
+          artifact-name: sbom-${{ env.APP_NAME }}-${{ inputs.image_build_tag }}.spdx.json
+          upload-artifact: true
 
 
       # Teardown and job end status

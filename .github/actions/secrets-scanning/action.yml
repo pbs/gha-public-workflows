@@ -1,0 +1,52 @@
+name: "Scan the code for secrets"
+description: "Scan the code for secrets"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare envs
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" == "push" ]; then
+          echo "depth=$(($(jq length <<< '${{ toJson(github.event.commits) }}') + 2))" >> $GITHUB_ENV
+          echo "branch=${{ github.ref_name }}" >> $GITHUB_ENV
+        fi
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          echo "depth=$((${{ github.event.pull_request.commits }}+2))" >> $GITHUB_ENV
+          echo "branch=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+        fi
+        echo "default_branch=${{ github.event.repository.default_branch }}" >> $GITHUB_ENV
+
+    # Scan secrets on push to the current branch or manual run
+    - name: Scan secrets on push
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      id: scanbranch
+      uses: trufflesecurity/trufflehog@main
+      continue-on-error: true
+      with:
+        path: ./
+        base: ""
+        head: ${{env.branch}}
+        extra_args: --debug --only-verified
+
+    - name: Scan results on push
+      if: ( github.event_name == 'push' || github.event_name == 'workflow_dispatch' ) && steps.scanbranch.outcome == 'failure'
+      shell: bash
+      run: echo "::warning step=scanbranch::secrets found in commit; fix before merging to default branch"; exit 0
+
+    # Scan secrets on pull request to the default branch
+    - name: Scan secrets on pull request
+      if: github.event_name == 'pull_request'
+      id: scansecrets
+      uses: trufflesecurity/trufflehog@main
+      continue-on-error: true
+      with:
+        path: ./
+        base: ${{env.default_branch}}
+        head: ${{env.branch}}
+        extra_args: --debug --only-verified
+
+    - name: Scan results on pull request
+      shell: bash
+      if: github.event_name == 'pull_request' && steps.scansecrets.outcome == 'failure'
+      run: echo "::error step=scansecrets::secrets found in merge request; fix immediately!"; exit 1
