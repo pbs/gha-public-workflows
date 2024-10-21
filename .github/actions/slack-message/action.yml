@@ -33,21 +33,23 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - id: color
+    - id: pre
       shell: bash
       env:
         status: ${{ inputs.status }}
+        text: ${{ inputs.text }}
       run: |
         set -x
         status_lower=$(echo "$status" | tr '[:upper:]' '[:lower:]')
-        if [[ "$status_lower" == "success" ]]; then
+        if [[ "$status_lower" =~ success ]]; then
           echo "COLOR=90ee90" >> $GITHUB_OUTPUT
-        elif [[ "$status_lower" == "failed" ]]; then
+        elif [[ "$status_lower" =~ failed ]]; then
           echo "COLOR=ff0000" >> $GITHUB_OUTPUT
         else
           echo "COLOR=dbab09" >> $GITHUB_OUTPUT
         fi
-        echo -e "SLACK_UPDATE=${{ env.SLACK_UPDATE }}\n${{ inputs.status }}" >> $GITHUB_ENV
+
+        echo "UPPER_TEXT=$(echo "$text" | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
       continue-on-error: true
 
     - id: slack
@@ -57,13 +59,12 @@ runs:
         channel-id: ${{ inputs.channel_id }}
         payload: |
           {
-            "text": "[${{ inputs.text }}",
+            "text": "[${{ steps.pre.outputs.UPPER_TEXT }}",
             "attachments": [
               {
-                "color": "${{ steps.color.outputs.COLOR }}",
+                "color": "${{ steps.pre.outputs.COLOR }}",
                 "fields": [
                   {
-                    "title": "Steps",
                     "short": true,
                     "value": "${{ inputs.status }}"
                   }
@@ -82,15 +83,14 @@ runs:
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "text": "[${{ inputs.text }}",
+            "text": "[${{ steps.pre.outputs.UPPER_TEXT }}",
             "attachments": [
               {
-                "color": "${{ steps.color.outputs.COLOR }}",
+                "color": "${{ steps.pre.outputs.COLOR }}",
                 "fields": [
                   {
-                    "title": "Steps",
                     "short": true,
-                    "value": "${{ env.SLACK_UPDATE }}"
+                    "value": "${{ inputs.status }}"
                   }
                 ]
               }
