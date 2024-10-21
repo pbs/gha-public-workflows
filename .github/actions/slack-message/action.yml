@@ -47,6 +47,7 @@ runs:
         else
           echo "COLOR=dbab09" >> $GITHUB_OUTPUT
         fi
+        echo -e "SLACK_UPDATE=${{ env.SLACK_UPDATE }}\n${{ inputs.status }}" >> $GITHUB_ENV
       continue-on-error: true
 
     - id: slack
@@ -62,7 +63,7 @@ runs:
                 "color": "${{ steps.color.outputs.COLOR }}",
                 "fields": [
                   {
-                    "title": "Status",
+                    "title": "Steps",
                     "short": true,
                     "value": "${{ inputs.status }}"
                   }
@@ -87,9 +88,9 @@ runs:
                 "color": "${{ steps.color.outputs.COLOR }}",
                 "fields": [
                   {
-                    "title": "Status",
+                    "title": "Steps",
                     "short": true,
-                    "value": "${{ inputs.status }}"
+                    "value": "${{ env.SLACK_UPDATE }}"
                   }
                 ]
               }
