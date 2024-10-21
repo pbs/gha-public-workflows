@@ -70,7 +70,7 @@ on:
 env:
   APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
-  SLACK_UPDATE: ""
+
 
 jobs:
   build:
@@ -78,31 +78,45 @@ jobs:
     environment: ${{ inputs.env }}
     steps:
       # Get code, permissions and set environment
-      - name: Checkout code
+      - name: Code Checkout
         uses: actions/checkout@main
         with:
           fetch-depth: 0
+
+      # Slack preparation
+      - name: Slack Status file
+        run: |
+          cat > slack_status.txt <<EOL
+          Code Checkout - success
+          Code Secrets Scan - $([[ "${{ inputs.secrets_scan }}" == "true" ]] && echo "pending" || echo "skipped")
+          AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")
+          AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")
+          Docker Build Image - pending
+          Docker Test Image - pending
+          Docker Push Image - pending
+          Docker Get SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")
+          Docker Publish SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")
+          EOL
 
       # Slack Workflow start
       - name: Slack Workflow start
         uses: ./.github/actions/slack-message
         if: ${{ vars.SLACK_CHANNEL_ID }} != ''
         id: slack
-        env:
-          SLACK_UPDATE: ""
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
-          status: ""
+          status: Starting up
 
-      # Secrets scanning
-      - name: Secrets scan
+      # Code Secrets Scan
+      - name: Code Secrets Scan
         if: inputs.secrets_scan == true
         id: secrets-scan
         uses: ./.github/actions/secrets-scanning
 
-      - run:  echo "SLACK_UPDATE=${{ env.SLACK_UPDATE }}\nScanning for secrets - ${{ steps.secrets-scan.outcome }}" >> $GITHUB_ENV
+      - run: sed -i 's/Code Secrets Scan - .*/Code Secrets Scan - ${{ steps.secrets-scan.outcome }}/' slack_status.txt
+
       - name: Update Slack
         uses: ./.github/actions/slack-message
         if: always() && inputs.secrets_scan == true ${{ vars.SLACK_CHANNEL_ID }} != ''
@@ -110,19 +124,24 @@ jobs:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
-          status: ${{ env.SLACK_UPDATE }}
           update: ${{ steps.slack.outputs.update }}
 
       - name: Assume AWS role
         if: inputs.assume_aws_role == true
         uses: aws-actions/configure-aws-credentials@v4
+        id: aws-assume-role
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
 
-      - name: Login to Amazon ECR
+      - run: sed -i 's/AWS Assume Role - .*/AWS Assume Role - ${{ steps.aws-assume-role.outcome }}/' slack_status.txt
+
+      - name: AWS ECR Login
         if: inputs.ecr_login == true
         uses: aws-actions/amazon-ecr-login@v1
+        id: aws-ecr-login
+
+      - run: sed -i 's/AWS ECR Login - .*/AWS ECR Login - ${{ steps.aws-ecr-login.outcome }}/' slack_status.txt
 
       - name: Run preparation
         if: inputs.before_command != ''
@@ -138,7 +157,7 @@ jobs:
         run: |
           docker buildx create --name builder --use
 
-      - name: Build Docker image
+      - name: Docker Build Image
         uses: docker/build-push-action@v6
         id: build-image
         with:
@@ -150,7 +169,8 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
           cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
 
-      - run:  echo "SLACK_UPDATE=${{ env.SLACK_UPDATE }}\nBuild Docker image - ${{ steps.build-image.outcome }}" >> $GITHUB_ENV
+      - run: sed -i 's/Docker Build Image - .*/Docker Build Image - ${{ steps.build-image.outcome }}/' slack_status.txt
+
       - name: Update Slack
         uses: ./.github/actions/slack-message
         if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
@@ -158,18 +178,18 @@ jobs:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
-          status: ${{ env.SLACK_UPDATE }}
           update: ${{ steps.slack.outputs.update }}
 
 
       # Docker image test
-      - name: Test Docker image
+      - name: Docker Test Image
         if: ${{ inputs.test_command }} != ''
         id: test-image
         run: |
           docker run --rm ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }} ${{ inputs.test_command }}
 
-      - run:  echo "SLACK_UPDATE=${{ env.SLACK_UPDATE }}\nTest Docker image - ${{ steps.test-image.outcome }}" >> $GITHUB_ENV
+      - run: sed -i 's/Docker Test Image - .*/Docker Test Image - ${{ steps.test-image.outcome }}/' slack_status.txt
+
       - name: Update Slack
         uses: ./.github/actions/slack-message
         if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
@@ -177,19 +197,19 @@ jobs:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
-          status: ${{ env.SLACK_UPDATE }}
           update: ${{ steps.slack.outputs.update }}
 
           
       # Docker image push
-      - name: Build and push
+      - name: Docker Push Image
         uses: docker/build-push-action@v6
         id: push-image
         with:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
 
-      - run:  echo "SLACK_UPDATE=${{ env.SLACK_UPDATE }}\nPush Docker image - ${{ steps.push-image.outcome }}" >> $GITHUB_ENV
+      - run: sed -i 's/Docker Push Image - .*/Docker Push Image - ${{ steps.push-image.outcome }}/' slack_status.txt
+
       - name: Update Slack
         uses: ./.github/actions/slack-message
         if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
@@ -197,13 +217,13 @@ jobs:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
-          status: ${{ env.SLACK_UPDATE }}
           update: ${{ steps.slack.outputs.update }}
 
 
       # Get and publish image SBOM
       - name: Retrieve SBOM
         uses: anchore/sbom-action@v0
+        if: inputs.sbom == true
         id: sbom
         with:
           image: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
@@ -211,7 +231,8 @@ jobs:
           artifact-name: sbom-${{ env.APP_NAME }}-${{ inputs.image_build_tag }}.spdx.json
           upload-artifact: true
 
-      - run:  echo "SLACK_UPDATE=${{ env.SLACK_UPDATE }}\nRetrieving the SBOM - ${{ steps.sbom.outcome }}" >> $GITHUB_ENV
+      - run: sed -i 's/Docker Get SBOM File - .*/Docker Get SBOM File - ${{ steps.sbom.outcome }}/' slack_status.txt
+
       - name: Update Slack
         uses: ./.github/actions/slack-message
         if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
@@ -219,7 +240,6 @@ jobs:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
-          status: ${{ env.SLACK_UPDATE }}
           update: ${{ steps.slack.outputs.update }}
 
 

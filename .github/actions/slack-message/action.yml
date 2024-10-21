@@ -12,10 +12,6 @@ inputs:
   text:
     description: 'Slack message'
     required: true
-  status:
-    description: 'Status to send to Slack for this message'
-    required: false
-    default: in progress
   update:
     description: 'Update previous Slack message with ts identifier'
     required: false
@@ -24,6 +20,14 @@ inputs:
     description: 'Reply previous Slack message with ts indentifier'
     required: false
     default: ''
+  status_msg:
+    description: 'Status message when not using the status file'
+    required: false
+    default: ''
+  status_file:
+    description: 'Status file from which to retrieve the statuses'
+    required: false
+    default: slack_status.txt
 
 outputs:
   update:
@@ -36,48 +40,31 @@ runs:
     - id: pre
       shell: bash
       env:
-        status: ${{ inputs.status }}
+        status_msg: ${{ inputs.status_msg }}
+        status_file: ${{ inputs.status_file }}
         text: ${{ inputs.text }}
       run: |
         set -x
-        status_lower=$(echo "$status" | tr '[:upper:]' '[:lower:]')
-        if [[ "$status_lower" =~ success ]]; then
-          echo "COLOR=90ee90" >> $GITHUB_OUTPUT
-        elif [[ "$status_lower" =~ failed ]]; then
-          echo "COLOR=ff0000" >> $GITHUB_OUTPUT
-        else
-          echo "COLOR=dbab09" >> $GITHUB_OUTPUT
-        fi
-
         echo "UPPER_TEXT=$(echo "$text" | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
+        
+        if [[ "$status_msg" == "" ]]; then
+          awk '{printf "%s\\n", $0}' $status_file > slack_status_formatted.txt
+          echo "STATUS_OUTPUT=$(cat slack_status_formatted.txt)" >> $GITHUB_OUTPUT
+
+          status_lower=$(cat slack_status_formatted.txt | tr '[:upper:]' '[:lower:]')
+          if grep -q failed $status_file; then
+            echo "COLOR=ff0000" >> $GITHUB_OUTPUT
+          else
+            echo "COLOR=90ee90" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "STATUS_OUTPUT=$status_msg" >> $GITHUB_OUTPUT
+        fi
       continue-on-error: true
 
     - id: slack
-      if: inputs.update == ''
       uses: slackapi/slack-github-action@v1.26.0
-      with:
-        channel-id: ${{ inputs.channel_id }}
-        payload: |
-          {
-            "text": "[${{ steps.pre.outputs.UPPER_TEXT }}",
-            "attachments": [
-              {
-                "color": "${{ steps.pre.outputs.COLOR }}",
-                "fields": [
-                  {
-                    "short": true,
-                    "value": "${{ inputs.status }}"
-                  }
-                ]
-              }
-            ]
-          }
-      env:
-        SLACK_BOT_TOKEN: ${{ inputs.token }}
-      continue-on-error: true
-
-    - uses: slackapi/slack-github-action@v1.26.0
-      if: inputs.update != ''
+      if: steps.pre.outputs.STATUS_OUTPUT != ''
       with:
         channel-id: ${{ inputs.channel_id }}
         update-ts: ${{ inputs.update }}
@@ -90,7 +77,7 @@ runs:
                 "fields": [
                   {
                     "short": true,
-                    "value": "${{ inputs.status }}"
+                    "value": "${{ steps.pre.outputs.STATUS_OUTPUT }}"
                   }
                 ]
               }
