@@ -221,7 +221,7 @@ jobs:
 
 
       # Get and publish image SBOM
-      - name: Retrieve SBOM
+      - name: Docker Get SBOM File
         uses: anchore/sbom-action@v0
         if: inputs.sbom == true
         id: sbom
