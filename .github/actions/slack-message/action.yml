@@ -28,6 +28,10 @@ inputs:
     description: 'Status file from which to retrieve the statuses'
     required: false
     default: slack_status.txt
+  status_file_update:
+    description: 'Status file update command'
+    required: false
+    default: ""
 
 outputs:
   update:
@@ -42,12 +46,17 @@ runs:
       env:
         status_msg: ${{ inputs.status_msg }}
         status_file: ${{ inputs.status_file }}
+        status_file_update: ${{ inputs.status_file_update }}
         text: ${{ inputs.text }}
       run: |
         set -x
         echo "UPPER_TEXT=$(echo "$text" | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
         
         if [[ "$status_msg" == "" ]]; then
+          if [[ "$status_file_update" != "" ]]; then
+            eval "$status_file_update"
+          fi
+
           awk '{printf "%s\\n", $0}' $status_file > slack_status_formatted.txt
           echo "STATUS_OUTPUT=$(cat slack_status_formatted.txt)" >> $GITHUB_OUTPUT
 

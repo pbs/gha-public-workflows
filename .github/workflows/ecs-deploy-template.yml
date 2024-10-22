@@ -11,6 +11,7 @@ on:
         type: string
         description: 'Command name'
         required: false
+        default: ''
       before_command:
         type: string
         description: '(Optional) Command to prepare the environment'
@@ -52,7 +53,7 @@ on:
 env:
   APP_NAME: ${{ vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
-  DEPLOY_NAME: ${{ inputs.name }} || "${{ inputs.ecs_cluster }}/${{ inputs.ecs_service }}"
+  DEPLOY_NAME: ${{ inputs.name != '' && inputs.name || format('{0}/{1}', inputs.ecs_cluster, inputs.ecs_service) }}
 
 
 jobs:
@@ -81,13 +82,12 @@ jobs:
       # Slack Workflow start
       - name: Slack Workflow start
         uses: ./.github/actions/slack-message
-        if: ${{ vars.SLACK_CHANNEL_ID }} != ''
+        if: (success() || failure()) && vars.SLACK_CHANNEL_ID != ''
         id: slack
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
-          status: Starting up
 
       - name: Assume AWS role
         if: inputs.assume_aws_role == true
@@ -97,14 +97,10 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
 
-      - run: sed -i 's/AWS Assume Role - .*/AWS Assume Role - ${{ steps.aws-assume-role.outcome }}/' slack_status.txt
-
       - name: AWS ECR Login
         if: inputs.ecr_login == true
         uses: aws-actions/amazon-ecr-login@v1
         id: aws-ecr-login
-
-      - run: sed -i 's/AWS ECR Login - .*/AWS ECR Login - ${{ steps.aws-ecr-login.outcome }}/' slack_status.txt
 
       # Preparation Command
       - name: Preparation Command
@@ -112,16 +108,18 @@ jobs:
         id: before-command
         run: ${{ inputs.before_command }}
       
-      - run: sed -i 's/Preparation Command - .*/Preparation Command - ${{ steps.before-command.outcome }}/' slack_status.txt
-
       - name: Update Slack
         uses: ./.github/actions/slack-message
-        if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
+        if: (success() || failure()) && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
           update: ${{ steps.slack.outputs.update }}
+          status_file_update: |
+            sed -i 's/AWS Assume Role - .*/AWS Assume Role - ${{ steps.aws-assume-role.outcome }}/' slack_status.txt
+            sed -i 's/AWS ECR Login - .*/AWS ECR Login - ${{ steps.aws-ecr-login.outcome }}/' slack_status.txt
+            sed -i 's/Preparation Command - .*/Preparation Command - ${{ steps.before-command.outcome }}/' slack_status.txt
 
 
       # Deploy ECS Service
@@ -141,16 +139,16 @@ jobs:
           timeout: "600"
           force_new_deployment_cmd: "--force-new-deployment"
 
-      - run: sed -i 's/Deploy ECS Service ${{ env.DEPLOY_NAME }} - .*/Deploy ECS Service ${{ env.DEPLOY_NAME }} - ${{ steps.deploy.outcome }}/' slack_status.txt
-
       - name: Update Slack
         uses: ./.github/actions/slack-message
-        if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
+        if: (success() || failure()) && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
           update: ${{ steps.slack.outputs.update }}
+          status_file_update: |
+            sed -i 's/Deploy ECS Service ${{ env.DEPLOY_NAME }} - .*/Deploy ECS Service ${{ env.DEPLOY_NAME }} - ${{ steps.deploy.outcome }}/' slack_status.txt
 
 
       # Teardown Command
@@ -160,16 +158,16 @@ jobs:
         run: ${{ inputs.after_command }}
         continue-on-error: true
 
-      - run: sed -i 's/Teardown Command - .*/Teardown Command - ${{ steps.after-command.outcome }}/' slack_status.txt
-
       - name: Update Slack
         uses: ./.github/actions/slack-message
-        if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
+        if: (success() || failure()) && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
           update: ${{ steps.slack.outputs.update }}
+          status_file_update: |
+            sed -i 's/Teardown Command - .*/Teardown Command - ${{ steps.after-command.outcome }}/' slack_status.txt
       
       # Job End Status
       - name: Set job end status
