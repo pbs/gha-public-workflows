@@ -1,0 +1,22 @@
+name: Test - ecs-deploy-template.yml template
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+    deploy:
+      uses: ./.github/workflows/run-commands-template.yml
+      secrets: inherit
+      with:
+        env: test
+        # name: test-service
+        before_command: pwd
+        after_command: pwd
+        ecs_cluster: test-cluster
+        ecs_service: test-service
+        image_name: test-image
+        image_tag: test-tag

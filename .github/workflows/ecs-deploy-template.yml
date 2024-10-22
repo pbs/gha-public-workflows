@@ -1,4 +1,4 @@
-name: Template - Run Commands
+name: Template - ECS Deploy
 
 on:
   workflow_call:
@@ -10,15 +10,10 @@ on:
       name:
         type: string
         description: 'Command name'
-        required: true
+        required: false
       before_command:
         type: string
         description: '(Optional) Command to prepare the environment'
-        required: false
-        default: ''
-      command:
-        type: string
-        description: 'Command to run'
         required: false
         default: ''
       after_command:
@@ -36,19 +31,28 @@ on:
         description: 'Login to ECR'
         required: false
         default: true
-      parser:
-        type: boolean
-        description: 'Enable JUnit Parser after runs'
-        required: false
-        default: false
-      report_paths:
+      ecs_cluster:
         type: string
-        description: 'JUnit Parser report paths'
+        description: 'ECS cluster name'
+        required: true
+      ecs_service:
+        type: string
+        description: 'ECS service name'
+        required: true
+      image_name:
+        type: string
+        description: 'Docker image name'
+        required: true
+      image_tag:
+        type: string
+        description: 'Docker image tag'
+        default: "latest"
         required: false
-        default: 'outdist/*.xml'
 
 env:
   APP_NAME: ${{ vars.APP_NAME }}
+  DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+  DEPLOY_NAME: ${{ inputs.name }} || "${{ inputs.ecs_cluster }}/${{ inputs.ecs_service }}"
 
 
 jobs:
@@ -70,9 +74,8 @@ jobs:
           AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")
           AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")
           Preparation Command - $([[ "${{ inputs.before_command }}" != "" ]] && echo "pending" || echo "skipped")
-          Run Command "${{ inputs.name }}" - $([[ "${{ inputs.command }}" != "" ]] && echo "pending" || echo "skipped")
+          Deploy ECS Service ${{ env.DEPLOY_NAME }} - $([[ "${{ inputs.ecs_service }}" != "" ]] && echo "pending" || echo "skipped")
           Teardown Command - $([[ "${{ inputs.after_command }}" != "" ]] && echo "pending" || echo "skipped")
-          Parsing Results - $([[ "${{ inputs.parser }}" != "" ]] && echo "pending" || echo "skipped")
           EOL
 
       # Slack Workflow start
@@ -121,13 +124,24 @@ jobs:
           update: ${{ steps.slack.outputs.update }}
 
 
-      # Run Command
-      - name: Run Command "${{ inputs.name }}"
-        if: inputs.command != ''
-        id: command
-        run: ${{ inputs.command }}
+      # Deploy ECS Service
+      - name: Deploy ECS Service ${{ env.DEPLOY_NAME }}
+        id: deploy
+        uses: silinternational/ecs-deploy@master
+        with:
+          cluster_cmd: "--cluster"
+          cluster: ${{ inputs.ecs_cluster }}
+          image_cmd: '--image'
+          image: "${{ env.DOCKER_REGISTRY }}/${{ inputs.image_name }}:${{ inputs.image_tag }}"
+          region_cmd: "--region"
+          region: ${{ vars.AWS_REGION }}
+          service_name_cmd: '--service-name'
+          service_name: "${{ inputs.ecs_service }}"
+          timeout_cmd: "--timeout"
+          timeout: "600"
+          force_new_deployment_cmd: "--force-new-deployment"
 
-      - run: sed -i 's/Run Command ${{ inputs.name }} - .*/Run Command ${{ inputs.name }} - ${{ steps.command.outcome }}/' slack_status.txt
+      - run: sed -i 's/Deploy ECS Service ${{ env.DEPLOY_NAME }} - .*/Deploy ECS Service ${{ env.DEPLOY_NAME }} - ${{ steps.deploy.outcome }}/' slack_status.txt
 
       - name: Update Slack
         uses: ./.github/actions/slack-message
@@ -157,25 +171,6 @@ jobs:
           text: "${{ env.APP_NAME }} ${{ inputs.env }}"
           update: ${{ steps.slack.outputs.update }}
       
-
-      - name: JUnit Parser
-        if: ( success() || failure() ) && inputs.parser == true
-        uses: mikepenz/action-junit-report@v4
-        id: parser
-        with:
-          report_paths: ${{ inputs.report_paths }}
-      
-      - run: sed -i 's/Parsing Results - .*/Parsing Results - ${{ steps.parser.outcome }}/' slack_status.txt
-
-      - name: Update Slack
-        uses: ./.github/actions/slack-message
-        if: always() && ${{ vars.SLACK_CHANNEL_ID }} != ''
-        with:
-          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-          text: "${{ env.APP_NAME }} ${{ inputs.env }}"
-          update: ${{ steps.slack.outputs.update }}
-
       # Job End Status
       - name: Set job end status
         if: success() || failure()
@@ -184,8 +179,8 @@ jobs:
             echo "::error step=before-command::Failed to run preparation command!"; exit 1
           fi
 
-          if [[ "${{ steps.command.outcome }}" == "failure" ]]; then
-            echo "::error step=build-image::Failed to run the command!"; exit 2
+          if [[ "${{ steps.deploy.outcome }}" == "failure" ]]; then
+            echo "::error step=build-image::Failed to deploy ECS service ${{ env.DEPLOY_NAME  }}!"; exit 2
           fi
 
           if [[ "${{ steps.after-command.outcome }}" == "failure" ]]; then
