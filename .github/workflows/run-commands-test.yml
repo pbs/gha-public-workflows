@@ -1,0 +1,21 @@
+name: Test - run-commands-template.yml template
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+    run-commands:
+      uses: ./.github/workflows/docker-build-push-template.yml
+      secrets: inherit
+      with:
+        env: test
+        before_command: pwd
+        command: |
+          pwd
+        after_command:
+          pwd
+        parser: true
