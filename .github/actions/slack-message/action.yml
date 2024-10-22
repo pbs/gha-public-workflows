@@ -36,6 +36,7 @@ outputs:
 
 runs:
   using: "composite"
+  continue-on-error: true
   steps:
     - id: pre
       shell: bash
