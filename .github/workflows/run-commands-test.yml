@@ -13,6 +13,7 @@ jobs:
       secrets: inherit
       with:
         env: test
+        name: testing123
         before_command: pwd
         command: |
           pwd
