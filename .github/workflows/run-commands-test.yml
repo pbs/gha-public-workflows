@@ -9,7 +9,7 @@ permissions:
 
 jobs:
     run-commands:
-      uses: ./.github/workflows/docker-build-push-template.yml
+      uses: ./.github/workflows/run-commands-template.yml
       secrets: inherit
       with:
         env: test
