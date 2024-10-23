@@ -9,7 +9,7 @@ permissions:
 
 jobs:
     deploy:
-      uses: ./.github/workflows/run-commands-template.yml
+      uses: ./.github/workflows/ecs-deploy-template.yml
       secrets: inherit
       with:
         env: test
