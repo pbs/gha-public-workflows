@@ -127,6 +127,7 @@ jobs:
           status_file_update: |
             sed -i 's/Code Secrets Scan - .*/Code Secrets Scan - ${{ steps.secrets-scan.outcome }}/' slack_status.txt
 
+      # Assume AWS role
       - name: Assume AWS role
         if: inputs.assume_aws_role == true
         uses: aws-actions/configure-aws-credentials@v4
@@ -135,6 +136,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
 
+      # AWS ECR Login
       - name: AWS ECR Login
         if: inputs.ecr_login == true
         uses: aws-actions/amazon-ecr-login@v1

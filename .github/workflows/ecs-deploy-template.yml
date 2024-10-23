@@ -82,7 +82,7 @@ jobs:
       # Slack Workflow start
       - name: Slack Workflow start
         uses: ./.github/actions/slack-message
-        if: (success() || failure()) && vars.SLACK_CHANNEL_ID != ''
+        if: always() && vars.SLACK_CHANNEL_ID != ''
         id: slack
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -110,7 +110,7 @@ jobs:
       
       - name: Update Slack
         uses: ./.github/actions/slack-message
-        if: (success() || failure()) && vars.SLACK_CHANNEL_ID != ''
+        if: always() && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -141,7 +141,7 @@ jobs:
 
       - name: Update Slack
         uses: ./.github/actions/slack-message
-        if: (success() || failure()) && vars.SLACK_CHANNEL_ID != ''
+        if: always() && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
