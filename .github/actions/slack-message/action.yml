@@ -9,7 +9,7 @@ inputs:
   channel_id:
     description: 'Slack channel id'
     required: true
-  text:
+  title:
     description: 'Slack message'
     required: true
   update:
@@ -47,10 +47,10 @@ runs:
         status_msg: ${{ inputs.status_msg }}
         status_file: ${{ inputs.status_file }}
         status_file_update: ${{ inputs.status_file_update }}
-        text: ${{ inputs.text }}
+        title: ${{ inputs.title }}
       run: |
         set -x
-        echo "UPPER_TEXT=$(echo "$text" | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
+        echo "UPPER_TITLE=$(echo "$title" | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
         
         if [[ "$status_msg" == "" ]]; then
           if [[ "$status_file_update" != "" ]]; then
@@ -79,7 +79,7 @@ runs:
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "text": "[${{ steps.pre.outputs.UPPER_TEXT }}",
+            "text": "[${{ steps.pre.outputs.UPPER_TITLE }}",
             "attachments": [
               {
                 "color": "${{ steps.pre.outputs.COLOR }}",
@@ -103,7 +103,7 @@ runs:
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "text": "[${{ inputs.text }}",
+            "text": "[${{ inputs.title }}",
             "thread_ts": "${{ inputs.reply }}"
           }
       env:

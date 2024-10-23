@@ -57,7 +57,7 @@ env:
 
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
     steps:
@@ -87,7 +87,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          text: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
 
       - name: Assume AWS role
         if: inputs.assume_aws_role == true
@@ -114,12 +114,12 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          text: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's/AWS Assume Role - .*/AWS Assume Role - ${{ steps.aws-assume-role.outcome }}/' slack_status.txt
-            sed -i 's/AWS ECR Login - .*/AWS ECR Login - ${{ steps.aws-ecr-login.outcome }}/' slack_status.txt
-            sed -i 's/Preparation Command - .*/Preparation Command - ${{ steps.before-command.outcome }}/' slack_status.txt
+            sed -i 's|AWS Assume Role - .*|AWS Assume Role - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt
+            sed -i 's|AWS ECR Login - .*|AWS ECR Login - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt
+            sed -i 's|Preparation Command - .*|Preparation Command - ${{ steps.before-command.outcome }}|' slack_status.txt
 
 
       # Deploy ECS Service
@@ -145,29 +145,29 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          text: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's/Deploy ECS Service ${{ env.DEPLOY_NAME }} - .*/Deploy ECS Service ${{ env.DEPLOY_NAME }} - ${{ steps.deploy.outcome }}/' slack_status.txt
+            sed -i 's|Deploy ECS Service ${{ env.DEPLOY_NAME }} - .*|Deploy ECS Service ${{ env.DEPLOY_NAME }} - ${{ steps.deploy.outcome }}|' slack_status.txt
 
 
       # Teardown Command
       - name: Teardown Command
-        if: ( success() || failure() ) && inputs.after_command != ''
+        if: always() && inputs.after_command != ''
         id: after-command
         run: ${{ inputs.after_command }}
         continue-on-error: true
 
       - name: Update Slack
         uses: ./.github/actions/slack-message
-        if: (success() || failure()) && vars.SLACK_CHANNEL_ID != ''
+        if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          text: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's/Teardown Command - .*/Teardown Command - ${{ steps.after-command.outcome }}/' slack_status.txt
+            sed -i 's|Teardown Command - .*|Teardown Command - ${{ steps.after-command.outcome }}|' slack_status.txt
       
       # Job End Status
       - name: Set job end status
