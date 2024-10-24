@@ -24,6 +24,7 @@ jobs:
         # sbom: true
     deploy:
       uses: ./.github/workflows/ecs-deploy-template.yml
+      needs: build-test-push
       secrets: inherit
       with:
         env: test
@@ -31,10 +32,11 @@ jobs:
         after_command: pwd
         ecs_cluster: test-cluster
         ecs_service: test-service
-        image_name: test-image
-        image_tag: test-tag
+        image_name: test-templates
+        image_tag: latest
     run-commands:
       uses: ./.github/workflows/run-commands-template.yml
+      needs: build-test-push
       secrets: inherit
       with:
         env: test

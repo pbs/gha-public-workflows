@@ -70,6 +70,7 @@ on:
 env:
   APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+  SLACK_TITLE: "${{ inputs.image_name || vars.APP_NAME }} ${{ inputs.env }} - DOCKER BUILD-TEST-PUSH"
 
 
 jobs:
@@ -108,7 +109,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
 
       # Code Secrets Scan
       - name: Code Secrets Scan
@@ -122,7 +123,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's/Code Secrets Scan - .*/Code Secrets Scan - ${{ steps.secrets-scan.outcome }}/' slack_status.txt
@@ -153,7 +154,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's/AWS Assume Role - .*/AWS Assume Role - ${{ steps.aws-assume-role.outcome }}/' slack_status.txt
@@ -187,7 +188,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's/Docker Build Image - .*/Docker Build Image - ${{ steps.build-image.outcome }}/' slack_status.txt
@@ -206,7 +207,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's/Docker Test Image - .*/Docker Test Image - ${{ steps.test-image.outcome }}/' slack_status.txt
@@ -226,7 +227,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's/Docker Push Image - .*/Docker Push Image - ${{ steps.push-image.outcome }}/' slack_status.txt
@@ -248,7 +249,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's/Docker Get SBOM File - .*/Docker Get SBOM File - ${{ steps.sbom.outcome }}/' slack_status.txt
@@ -266,7 +267,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's/Docker Get SBOM File - .*/Docker Get SBOM File - ${{ steps.sbom.outcome }}/' slack_status.txt

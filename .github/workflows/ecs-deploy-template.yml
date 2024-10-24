@@ -54,6 +54,7 @@ env:
   APP_NAME: ${{ vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
   DEPLOY_NAME: ${{ inputs.name != '' && inputs.name || format('{0}/{1}', inputs.ecs_cluster, inputs.ecs_service) }}
+  SLACK_TITLE: "${{ vars.APP_NAME }} ${{ inputs.env }} - ECS DEPLOY"
 
 
 jobs:
@@ -87,7 +88,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
 
       - name: Assume AWS role
         if: inputs.assume_aws_role == true
@@ -114,7 +115,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's|AWS Assume Role - .*|AWS Assume Role - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt
@@ -138,6 +139,7 @@ jobs:
           timeout_cmd: "--timeout"
           timeout: "600"
           force_new_deployment_cmd: "--force-new-deployment"
+          continue-on-error: ${{ inputs.env != 'test' && false || true }}
 
       - name: Update Slack
         uses: ./.github/actions/slack-message
@@ -145,7 +147,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's|Deploy ECS Service ${{ env.DEPLOY_NAME }} - .*|Deploy ECS Service ${{ env.DEPLOY_NAME }} - ${{ steps.deploy.outcome }}|' slack_status.txt
@@ -164,7 +166,7 @@ jobs:
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ env.APP_NAME }} ${{ inputs.env }}"
+          title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's|Teardown Command - .*|Teardown Command - ${{ steps.after-command.outcome }}|' slack_status.txt
