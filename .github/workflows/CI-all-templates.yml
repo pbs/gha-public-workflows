@@ -1,0 +1,46 @@
+name: CI - all templates
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - reopened
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+    build-test-push:
+      uses: ./.github/workflows/docker-build-push.yml
+      secrets: inherit
+      with:
+        env: test
+        image_name: test-templates
+        image_build_tag: latest
+        image_test_tag: test
+        test_command: pwd
+        # sbom: true
+    deploy:
+      uses: ./.github/workflows/ecs-deploy-template.yml
+      secrets: inherit
+      with:
+        env: test
+        before_command: pwd
+        after_command: pwd
+        ecs_cluster: test-cluster
+        ecs_service: test-service
+        image_name: test-image
+        image_tag: test-tag
+    run-commands:
+      uses: ./.github/workflows/run-commands-template.yml
+      secrets: inherit
+      with:
+        env: test
+        name: testing123
+        before_command: pwd
+        command: |
+          pwd
+        after_command: pwd
+        # parser: true

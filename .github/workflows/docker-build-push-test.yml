@@ -9,7 +9,7 @@ permissions:
 
 jobs:
     build-test-push:
-      uses: ./.github/workflows/docker-build-push-template.yml
+      uses: ./.github/workflows/docker-build-push.yml
       secrets: inherit
       with:
         env: test
