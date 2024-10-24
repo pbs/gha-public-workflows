@@ -9,7 +9,7 @@ permissions:
 
 jobs:
     run-commands:
-      uses: ./.github/workflows/run-commands-template.yml
+      uses: ./.github/workflows/run-commands.yml
       secrets: inherit
       with:
         env: test

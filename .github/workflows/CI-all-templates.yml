@@ -23,7 +23,7 @@ jobs:
         test_command: pwd
         # sbom: true
     deploy:
-      uses: ./.github/workflows/ecs-deploy-template.yml
+      uses: ./.github/workflows/ecs-deploy.yml
       needs: build-test-push
       secrets: inherit
       with:
@@ -35,7 +35,7 @@ jobs:
         image_name: test-templates
         image_tag: latest
     run-commands:
-      uses: ./.github/workflows/run-commands-template.yml
+      uses: ./.github/workflows/run-commands.yml
       needs: build-test-push
       secrets: inherit
       with:
