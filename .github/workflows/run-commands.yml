@@ -38,7 +38,7 @@ on:
         default: true
       parser:
         type: boolean
-        description: 'Enable JUnit Parser after runs'
+        description: 'Publish test results using JUnit Parser'
         required: false
         default: false
       report_paths:
