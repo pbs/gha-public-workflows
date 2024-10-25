@@ -12,7 +12,7 @@ on:
         description: '(Optional) Command to prepare the environment'
         required: false
         default: ''
-      test_commands:
+      test_command:
         type: string
         description: 'Command to test the application'
         required: false
