@@ -214,9 +214,9 @@ jobs:
 
       # Docker image test
       - name: Docker Test Image
-        if: inputs.test_commands != ''
+        if: inputs.test_command != ''
         id: test-image
-        run: ${{ inputs.test_commands }}
+        run: ${{ inputs.test_command }}
 
       - name: Parse and Publish Test Results
         if: inputs.parser == true

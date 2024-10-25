@@ -16,7 +16,11 @@ jobs:
         image_name: test-templates
         image_build_tag: latest
         image_test_tag: test
-        test_commands: |
+        before_command: |
+          pwd
+        test_command: |
+          pwd
+        after_command: |
           pwd
         # sbom: true
         # parser: true

@@ -17,6 +17,6 @@ jobs:
         before_command: pwd
         command: |
           pwd
-        after_command:
+        after_command: |
           pwd
         parser: true
