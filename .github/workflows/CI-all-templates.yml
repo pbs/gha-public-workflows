@@ -20,8 +20,11 @@ jobs:
         image_name: test-templates
         image_build_tag: latest
         image_test_tag: test
-        test_command: pwd
+        test_commands: |
+          pwd
         # sbom: true
+        # parser: true
+        # sonarqube: true
     deploy:
       uses: ./.github/workflows/ecs-deploy.yml
       needs: build-test-push

@@ -139,7 +139,7 @@ jobs:
           timeout_cmd: "--timeout"
           timeout: "600"
           force_new_deployment_cmd: "--force-new-deployment"
-          continue-on-error: ${{ inputs.env != 'test' && false || true }}
+        continue-on-error: ${{ inputs.env != 'test' && false || true }}
 
       - name: Update Slack
         uses: ./.github/actions/slack-message
