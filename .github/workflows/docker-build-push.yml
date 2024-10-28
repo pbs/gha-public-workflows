@@ -310,7 +310,7 @@ jobs:
 
       - name: Update Slack
         uses: ./.github/actions/slack-message
-        if: always() && inputs.after_command == true && vars.SLACK_CHANNEL_ID != ''
+        if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
