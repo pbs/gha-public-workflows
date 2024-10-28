@@ -117,6 +117,7 @@ jobs:
           Parse and Publish Test Results - $([[ "${{ inputs.parser }}" != "" ]] && echo "pending" || echo "skipped")
           SonarQube Scan - $([[ "${{ inputs.sonarqube }}" != "" ]] && echo "pending" || echo "skipped")
           Docker Push Image - pending
+          Docker Push Image Custom Tag - pending
           Docker Get SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")
           Docker Publish SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")
           Teardown Command - $([[ "${{ inputs.after_command }}" != "" ]] && echo "pending" || echo "skipped")
@@ -261,7 +262,7 @@ jobs:
       - name: Docker Push Image Custom Tag
         uses: docker/build-push-action@v6
         if: env.CUSTOM_TAG != ''
-        id: push-image-custom
+        id: push-image-custom-tag
         with:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
@@ -276,6 +277,7 @@ jobs:
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's|Docker Push Image - .*|Docker Push Image - ${{ steps.push-image.outcome }}|' slack_status.txt
+            sed -i 's|Docker Push Image Custom Tag - .*|Docker Push Image Custom Tag - ${{ steps.push-image-custom-tag.outcome }}|' slack_status.txt
 
       # Get and publish image SBOM
       - name: Docker Get SBOM File
