@@ -88,6 +88,9 @@ env:
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
   SLACK_TITLE: "${{ inputs.image_name || vars.APP_NAME }} ${{ inputs.env }} - DOCKER BUILD-TEST-PUSH"
 
+  # Update the CUSTOM_TAG with 'echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"' in any step before the push
+  CUSTOM_TAG: ''
+
 
 jobs:
   build:
@@ -158,7 +161,7 @@ jobs:
       # AWS ECR Login
       - name: AWS ECR Login
         if: inputs.ecr_login == true
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
         id: aws-ecr-login
 
       - name: Run preparation
@@ -254,6 +257,14 @@ jobs:
         with:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
+
+      - name: Docker Push Image Custom Tag
+        uses: docker/build-push-action@v6
+        if: env.CUSTOM_TAG != ''
+        id: push-image-custom
+        with:
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
 
       - name: Update Slack
         uses: ./.github/actions/slack-message
