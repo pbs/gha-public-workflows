@@ -96,6 +96,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
+    outputs:
+      image: ${{ steps.build-outputs.outputs.image }}
+      build_tag: ${{ steps.build-outputs.outputs.build_tag }}
+      custom_tag: ${{ steps.build-outputs.outputs.custom_tag }}
     steps:
       # Get code, permissions and set environment
       - name: Code Checkout
@@ -319,6 +323,13 @@ jobs:
           status_file_update: |
             sed -i 's|Teardown Command - .*|Teardown Command - ${{ steps.after-command.outcome }}|' slack_status.txt
 
+      - name: Set Job Outputs
+        id: build-outputs
+        run: |
+          echo "::set-output name=image::${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}"
+          echo "::set-output name=build_tag::${{ inputs.image_build_tag }}"
+          echo "::set-output name=custom_tag::${{ env.CUSTOM_TAG }}"
+
       - name: Set job end status
         if: success() || failure()
         run: |
@@ -341,3 +352,4 @@ jobs:
           if [[ "${{ steps.after-command.outcome }}" == "failure" ]]; then
             echo "::warning step=after-command::Failed to run teardown for ${{ inputs.image_name }} image build"; exit 0
           fi
+
