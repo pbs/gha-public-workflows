@@ -18,6 +18,8 @@ jobs:
         image_test_tag: test
         before_command: |
           pwd
+          CUSTOM_TAG="latest-custom"
+          echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
         test_command: |
           pwd
         after_command: |

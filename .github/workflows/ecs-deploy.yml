@@ -100,7 +100,7 @@ jobs:
 
       - name: AWS ECR Login
         if: inputs.ecr_login == true
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
         id: aws-ecr-login
 
       # Preparation Command
