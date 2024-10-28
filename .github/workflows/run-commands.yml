@@ -73,7 +73,7 @@ jobs:
           Preparation Command - $([[ "${{ inputs.before_command }}" != "" ]] && echo "pending" || echo "skipped")
           Run Command ${{ inputs.name }} - $([[ "${{ inputs.command }}" != "" ]] && echo "pending" || echo "skipped")
           Teardown Command - $([[ "${{ inputs.after_command }}" != "" ]] && echo "pending" || echo "skipped")
-          Parsing Results - $([[ "${{ inputs.parser }}" != "" ]] && echo "pending" || echo "skipped")
+          Parsing Results - $([[ "${{ inputs.parser }}" == true ]] && echo "pending" || echo "skipped")
           EOL
 
       # Slack Workflow start
