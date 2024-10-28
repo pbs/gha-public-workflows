@@ -20,7 +20,13 @@ jobs:
         image_name: test-templates
         image_build_tag: latest
         image_test_tag: test
+        before_command: |
+          pwd
+          CUSTOM_TAG="latest-custom"
+          echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
         test_command: |
+          pwd
+        after_command: |
           pwd
         # sbom: true
         # parser: true
