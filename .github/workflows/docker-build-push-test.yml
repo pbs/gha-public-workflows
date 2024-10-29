@@ -13,6 +13,7 @@ jobs:
       secrets: inherit
       with:
         env: test
+        immutable: true
         image_name: test-templates
         image_build_tag: latest
         image_test_tag: test
