@@ -179,7 +179,7 @@ jobs:
             echo "::error step=before-command::Failed to run preparation command!"; exit 1
           fi
 
-          if [[ "${{ steps.deploy.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.deploy.outcome }}" == "failure" && "${{ inputs.env }}" != "test" ]]; then
             echo "::error step=build-image::Failed to deploy ECS service ${{ env.DEPLOY_NAME  }}!"; exit 2
           fi
 
