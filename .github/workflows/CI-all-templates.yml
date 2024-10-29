@@ -33,7 +33,6 @@ jobs:
         # sonarqube: true
     deploy:
       uses: ./.github/workflows/ecs-deploy.yml
-      needs: build-test-push
       secrets: inherit
       with:
         env: test
@@ -45,7 +44,6 @@ jobs:
         image_tag: latest
     run-commands:
       uses: ./.github/workflows/run-commands.yml
-      needs: build-test-push
       secrets: inherit
       with:
         env: test
