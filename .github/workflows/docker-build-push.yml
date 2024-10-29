@@ -117,7 +117,7 @@ jobs:
           AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")
           Preparation Command - $([[ "${{ inputs.before_command }}" != "" ]] && echo "pending" || echo "skipped")
           Docker Build Image - pending
-          Docker Test Image - $([[ "${{ inputs.test_commands }}" != "" ]] && echo "pending" || echo "skipped")
+          Docker Test Image - $([[ "${{ inputs.test_command }}" != "" ]] && echo "pending" || echo "skipped")
           Parse and Publish Test Results - $([[ "${{ inputs.parser }}" != "" ]] && echo "pending" || echo "skipped")
           SonarQube Scan - $([[ "${{ inputs.sonarqube }}" != "" ]] && echo "pending" || echo "skipped")
           Docker Push Image - pending
