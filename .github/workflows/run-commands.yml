@@ -70,9 +70,9 @@ jobs:
           Code Checkout - success
           AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")
           AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")
-          Preparation Command - $([[ "${{ inputs.before_command }}" != "" ]] && echo "pending" || echo "skipped")
-          Run Command ${{ inputs.name }} - $([[ "${{ inputs.command }}" != "" ]] && echo "pending" || echo "skipped")
-          Teardown Command - $([[ "${{ inputs.after_command }}" != "" ]] && echo "pending" || echo "skipped")
+          Preparation Command - $([[ -n "${{ inputs.before_command }}" ]] && echo "pending" || echo "skipped")
+          Run Command ${{ inputs.name }} - $([[ -n "${{ inputs.command }}" ]] && echo "pending" || echo "skipped")
+          Teardown Command - $([[ -n "${{ inputs.after_command }}" ]] && echo "pending" || echo "skipped")
           Parsing Results - $([[ "${{ inputs.parser }}" == true ]] && echo "pending" || echo "skipped")
           EOL
 

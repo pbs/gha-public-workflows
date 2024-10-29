@@ -76,8 +76,8 @@ jobs:
           AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")
           AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")
           Preparation Command - $([[ "${{ inputs.before_command }}" != "" ]] && echo "pending" || echo "skipped")
-          Deploy ECS Service ${{ env.DEPLOY_NAME }} - $([[ "${{ inputs.ecs_service }}" != "" ]] && echo "pending" || echo "skipped")
-          Teardown Command - $([[ "${{ inputs.after_command }}" != "" ]] && echo "pending" || echo "skipped")
+          Deploy ECS Service ${{ env.DEPLOY_NAME }} - $([[ -n "${{ inputs.ecs_service }}" ]] && echo "pending" || echo "skipped")
+          Teardown Command - $([[ -n "${{ inputs.after_command }}" ]] && echo "pending" || echo "skipped")
           EOL
 
       # Slack Workflow start
