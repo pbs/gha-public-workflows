@@ -115,16 +115,16 @@ jobs:
           Code Secrets Scan - $([[ "${{ inputs.secrets_scan }}" == "true" ]] && echo "pending" || echo "skipped")
           AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")
           AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")
-          Preparation Command - $([[ "${{ inputs.before_command }}" != "" ]] && echo "pending" || echo "skipped")
+          Preparation Command - $([[ -n "${{ inputs.before_command }}" ]] && echo "pending" || echo "skipped")
           Docker Build Image - pending
-          Docker Test Image - $([[ "${{ inputs.test_command }}" != "" ]] && echo "pending" || echo "skipped")
-          Parse and Publish Test Results - $([[ "${{ inputs.parser }}" != "" ]] && echo "pending" || echo "skipped")
-          SonarQube Scan - $([[ "${{ inputs.sonarqube }}" != "" ]] && echo "pending" || echo "skipped")
+          Docker Test Image - $([[ -n "${{ inputs.test_command }}" ]] && echo "pending" || echo "skipped")
+          Parse and Publish Test Results - $([[ -n "${{ inputs.parser }}" ]] && echo "pending" || echo "skipped")
+          SonarQube Scan - $([[ -n "${{ inputs.sonarqube }}" ]] && echo "pending" || echo "skipped")
           Docker Push Image - pending
           Docker Push Image Custom Tag - pending
           Docker Get SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")
           Docker Publish SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")
-          Teardown Command - $([[ "${{ inputs.after_command }}" != "" ]] && echo "pending" || echo "skipped")
+          Teardown Command - $([[ -n "${{ inputs.after_command }}" ]] && echo "pending" || echo "skipped")
           EOL
 
       # Slack Workflow start
