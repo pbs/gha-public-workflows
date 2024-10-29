@@ -9,7 +9,7 @@ on:
         required: true
       name:
         type: string
-        description: 'Command name'
+        description: 'Deployment name'
         required: false
         default: ''
       before_command:

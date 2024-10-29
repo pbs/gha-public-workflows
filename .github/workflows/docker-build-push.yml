@@ -152,7 +152,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Code Secrets Scan - .*|Code Secrets Scan - ${{ steps.secrets-scan.outcome }}' slack_status.txt
+            sed -i 's|Code Secrets Scan - .*|Code Secrets Scan - ${{ steps.secrets-scan.outcome }}|' slack_status.txt
 
       # Assume AWS role
       - name: Assume AWS role
