@@ -70,15 +70,13 @@ jobs:
           COMMAND: ${{ inputs.command }}
           AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          cat > slack_status.txt <<EOL
-          Code Checkout - success
-          AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")
-          AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")
-          Preparation Command - $([[ -n "$BEFORE_COMMAND" ]] && echo "pending" || echo "skipped")
-          Run Command ${{ inputs.name }} - $([[ -n "$COMMAND" ]] && echo "pending" || echo "skipped")
-          Teardown Command - $([[ -n "$AFTER_COMMAND" ]] && echo "pending" || echo "skipped")
-          Parsing Results - $([[ "${{ inputs.parser }}" == true ]] && echo "pending" || echo "skipped")
-          EOL
+          echo 'Code Checkout - success' > slack_status.txt
+          echo 'AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Preparation Command - $([[ -n "$BEFORE_COMMAND" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Run Command ${{ inputs.name }} - $([[ -n "$COMMAND" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Teardown Command - $([[ -n "$AFTER_COMMAND" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Parsing Results - $([[ "${{ inputs.parser }}" == true ]] && echo "pending" || echo "skipped")' >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
