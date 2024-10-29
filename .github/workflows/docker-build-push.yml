@@ -109,23 +109,25 @@ jobs:
 
       # Slack preparation
       - name: Slack Status file
+        env:
+          BEFORE_COMMAND: ${{ inputs.before_command }}
+          TEST_COMMAND: ${{ inputs.test_command }}
+          AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          cat > slack_status.txt <<EOL
-          Code Checkout - success
-          Code Secrets Scan - $([[ "${{ inputs.secrets_scan }}" == "true" ]] && echo "pending" || echo "skipped")
-          AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")
-          AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")
-          Preparation Command - $([[ -n "${{ inputs.before_command }}" ]] && echo "pending" || echo "skipped")
-          Docker Build Image - pending
-          Docker Test Image - $([[ -n "${{ inputs.test_command }}" ]] && echo "pending" || echo "skipped")
-          Parse and Publish Test Results - $([[ -n "${{ inputs.parser }}" ]] && echo "pending" || echo "skipped")
-          SonarQube Scan - $([[ -n "${{ inputs.sonarqube }}" ]] && echo "pending" || echo "skipped")
-          Docker Push Image - pending
-          Docker Push Image Custom Tag - pending
-          Docker Get SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")
-          Docker Publish SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")
-          Teardown Command - $([[ -n "${{ inputs.after_command }}" ]] && echo "pending" || echo "skipped")
-          EOL
+          echo 'Code Checkout - success' > slack_status.txt
+          echo 'Code Secrets Scan - $([[ "${{ inputs.secrets_scan }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Preparation Command - $([[ -n "$BEFORE_COMMAND" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Docker Build Image - pending' >> slack_status.txt
+          echo 'Docker Test Image - $([[ -n "$TEST_COMMAND" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Parse and Publish Test Results - $([[ "${{ inputs.parser }} == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'SonarQube Scan - $([[ "${{ inputs.sonarqube }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Docker Push Image - pending' >> slack_status.txt
+          echo 'Docker Push Image Custom Tag - pending' >> slack_status.txt
+          echo 'Docker Get SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Docker Publish SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo 'Teardown Command - $([[ -n "$AFTER_COMMAND" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
