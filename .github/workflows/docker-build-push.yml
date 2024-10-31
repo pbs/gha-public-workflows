@@ -281,6 +281,8 @@ jobs:
         if: env.CUSTOM_TAG != ''
         id: push-image-custom-tag
         with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
 
