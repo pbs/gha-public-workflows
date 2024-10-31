@@ -32,6 +32,11 @@ on:
         description: 'Login to ECR'
         required: false
         default: true
+      immutable:
+        type: boolean
+        description: 'Repository is immutable'
+        required: false
+        default: false
       secrets_scan:
         type: boolean
         description: 'Scan code for secrets before build'
@@ -114,20 +119,20 @@ jobs:
           TEST_COMMAND: ${{ inputs.test_command }}
           AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          echo 'Code Checkout - success' > slack_status.txt
-          echo 'Code Secrets Scan - $([[ "${{ inputs.secrets_scan }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
-          echo 'AWS Assume Role - $([[ "${{ inputs.assume_aws_role }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
-          echo 'AWS ECR Login - $([[ "${{ inputs.ecr_login }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
-          echo 'Preparation Command - $([[ -n "$BEFORE_COMMAND" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
-          echo 'Docker Build Image - pending' >> slack_status.txt
-          echo 'Docker Test Image - $([[ -n "$TEST_COMMAND" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
-          echo 'Parse and Publish Test Results - $([[ "${{ inputs.parser }} == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
-          echo 'SonarQube Scan - $([[ "${{ inputs.sonarqube }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
-          echo 'Docker Push Image - pending' >> slack_status.txt
-          echo 'Docker Push Image Custom Tag - pending' >> slack_status.txt
-          echo 'Docker Get SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
-          echo 'Docker Publish SBOM File - $([[ "${{ inputs.sbom }}" == "true" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
-          echo 'Teardown Command - $([[ -n "$AFTER_COMMAND" ]] && echo "pending" || echo "skipped")' >> slack_status.txt
+          echo "Code Checkout - success" > slack_status.txt
+          echo "Code Secrets Scan - $([[ \"${{ inputs.secrets_scan }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "AWS Assume Role - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "AWS ECR Login - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "Preparation Command - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "Docker Build Image - pending" >> slack_status.txt
+          echo "Docker Test Image - $([[ -n \"$TEST_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "Parse and Publish Test Results - $([[ \"${{ inputs.parser }} == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "SonarQube Scan - $([[ \"${{ inputs.sonarqube }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "Docker Push Image - pending" >> slack_status.txt
+          echo "Docker Push Image Custom Tag - pending" >> slack_status.txt
+          echo "Docker Get SBOM File - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "Docker Publish SBOM File - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "Teardown Command - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
@@ -208,7 +213,6 @@ jobs:
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
           builder: builder
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
-          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
@@ -258,12 +262,17 @@ jobs:
 
 
       # Docker image push
+      - name: Docker Remove Old Images
+        if: inputs.immutable == true
+        run: aws ecr batch-delete-image --repository-name ${{ env.APP_NAME }} --image-ids imageTag=${{ inputs.image_build_tag }} imageTag=${{ env.CUSTOM_TAG }} imageTag=cache-${{ inputs.image_build_tag }}
+          
       - name: Docker Push Image
         uses: docker/build-push-action@v6
         id: push-image
         with:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
+          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
 
       - name: Docker Push Image Custom Tag
         uses: docker/build-push-action@v6
