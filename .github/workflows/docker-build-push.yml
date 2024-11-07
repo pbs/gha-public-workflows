@@ -119,7 +119,7 @@ jobs:
           TEST_COMMAND: ${{ inputs.test_command }}
           AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          echo "Code Checkout - :white_tick:" > slack_status.txt
+          echo "Code Checkout - :white_tick: " > slack_status.txt
           echo "Code Secrets Scan - $([[ \"${{ inputs.secrets_scan }}\" == \"true\" ]] && echo :hourglass_flowing_sand: || echo :kangaroo:)" >> slack_status.txt
           echo "AWS Assume Role - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo :hourglass_flowing_sand: || echo :kangaroo:)" >> slack_status.txt
           echo "AWS ECR Login - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo :hourglass_flowing_sand: || echo :kangaroo:)" >> slack_status.txt
@@ -136,7 +136,7 @@ jobs:
 
       # Slack Workflow start
       - name: Slack Workflow start
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message
         if: vars.SLACK_CHANNEL_ID != ''
         id: slack
         with:
@@ -151,7 +151,7 @@ jobs:
         uses: pbs/gha-public-workflows/.github/actions/secrets-scanning@main
 
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message
         if: always() && inputs.secrets_scan == true && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -182,7 +182,7 @@ jobs:
         run: ${{ inputs.before_command }}
 
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message
         if: always() && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -215,7 +215,7 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
 
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message
         if: always() && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -248,7 +248,7 @@ jobs:
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
       
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message
         if: always() && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -287,7 +287,7 @@ jobs:
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
 
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message
         if: always() && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -310,7 +310,7 @@ jobs:
           upload-artifact: true
 
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message
         if: always() && inputs.sbom == true && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -328,7 +328,7 @@ jobs:
         continue-on-error: true
 
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message
         if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
