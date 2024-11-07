@@ -50,6 +50,11 @@ runs:
         title: ${{ inputs.title }}
       run: |
         set -x
+        status_file_update="$(echo $status_file_update | sed 's/success/:white_tick:/g')"
+        status_file_update="$(echo $status_file_update | sed 's/failure/:x:/g')"
+        status_file_update="$(echo $status_file_update | sed 's/canceled/:octagonal_sign:/g')"
+        status_file_update="$(echo $status_file_update | sed 's/skipped/:kangaroo:/g')"
+        status_file_update="$(echo $status_file_update | sed 's/pending/:hourglass_flowing_sand:/g')"
         echo "UPPER_TITLE=$(echo "$title" | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
         
         if [[ "$status_msg" == "" ]]; then
