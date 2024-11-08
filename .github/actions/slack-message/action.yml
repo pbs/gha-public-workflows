@@ -64,10 +64,9 @@ runs:
           awk '{printf "%s\\n", $0}' $status_file > slack_status_formatted.txt
           echo "STATUS_OUTPUT=$(cat slack_status_formatted.txt)" >> $GITHUB_OUTPUT
 
-          status_lower=$(cat slack_status_formatted.txt | tr '[:upper:]' '[:lower:]')
-          if grep -q "*WORKFLOW* - _RUNNING_" $status_file; then
+          if grep -q "\*WORKFLOW\* - _RUNNING_" $status_file; then
             echo "COLOR=ffff00" >> $GITHUB_OUTPUT 
-          elif grep -q "*WORKFLOW* - _FAILED_" $status_file; then
+          elif grep -q "\*WORKFLOW\* - _FAILED_" $status_file; then
             echo "COLOR=ff0000" >> $GITHUB_OUTPUT
           else
             echo "COLOR=90ee90" >> $GITHUB_OUTPUT
