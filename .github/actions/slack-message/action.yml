@@ -65,7 +65,7 @@ runs:
           echo "STATUS_OUTPUT=$(cat slack_status_formatted.txt)" >> $GITHUB_OUTPUT
 
           status_lower=$(cat slack_status_formatted.txt | tr '[:upper:]' '[:lower:]')
-          if grep -q failure $status_file; then
+          if grep -q FAILURE $status_file; then
             echo "COLOR=ff0000" >> $GITHUB_OUTPUT
           else
             echo "COLOR=90ee90" >> $GITHUB_OUTPUT
@@ -91,7 +91,7 @@ runs:
                 "fields": [
                   {
                     "short": false,
-                    "value": "${{ steps.pre.outputs.STATUS_OUTPUT }} \n DEBUG: ${{ github.action_status }} "
+                    "value": "${{ steps.pre.outputs.STATUS_OUTPUT }} \n DEBUG: ${{ job.status }} "
                   }
                 ]
               }
