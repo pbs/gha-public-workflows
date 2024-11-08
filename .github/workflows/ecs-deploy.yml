@@ -49,12 +49,17 @@ on:
         description: 'Docker image tag'
         default: "latest"
         required: false
+      timeout:
+        type: string
+        description: 'ECS deploy timeout(seconds)'
+        default: "600"
+        required: false
 
 env:
   APP_NAME: ${{ vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
   DEPLOY_NAME: ${{ inputs.name != '' && inputs.name || format('{0}/{1}', inputs.ecs_cluster, inputs.ecs_service) }}
-  SLACK_TITLE: "${{ vars.APP_NAME }} ${{ inputs.env }} - ECS DEPLOY"
+  SLACK_TITLE: "APPLICATION: ${{ vars.APP_NAME }}; ENV: ${{ inputs.env }} - ECS DEPLOY"
 
 
 jobs:
@@ -75,12 +80,12 @@ jobs:
           ECS_SERVICE: ${{ inputs.ecs_service }}
           AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          echo "Code Checkout - success" > slack_status.txt
-          echo "AWS Assume Role - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "AWS ECR Login - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Preparation Command - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Deploy ECS Service ${{ env.DEPLOY_NAME }} - $([[ -n \"$ECS_SERVICE\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Teardown Command - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo"*Code Checkout* - success :white_check_mark: " > slack_status.txt
+          echo"*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo"*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo"*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo"*Deploy ECS Service ${{ env.DEPLOY_NAME }}* - $([[ -n \"$ECS_SERVICE\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo"*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
@@ -120,9 +125,9 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|AWS Assume Role - .*|AWS Assume Role - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt
-            sed -i 's|AWS ECR Login - .*|AWS ECR Login - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt
-            sed -i 's|Preparation Command - .*|Preparation Command - ${{ steps.before-command.outcome }}|' slack_status.txt
+            sed -i 's|\*AWS Assume Role\* - .*|\*AWS Assume Role\* - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt
+            sed -i 's|\*AWS ECR Login\* - .*|\*AWS ECR Login\* - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt
+            sed -i 's|\*Preparation Command\* - .*|\*Preparation Command\* - ${{ steps.before-command.outcome }}|' slack_status.txt
 
 
       # Deploy ECS Service
@@ -139,7 +144,7 @@ jobs:
           service_name_cmd: '--service-name'
           service_name: "${{ inputs.ecs_service }}"
           timeout_cmd: "--timeout"
-          timeout: "600"
+          timeout: ${{ inputs.timeout }}
           force_new_deployment_cmd: "--force-new-deployment"
         continue-on-error: ${{ inputs.env != 'test' && false || true }}
 
@@ -152,7 +157,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Deploy ECS Service ${{ env.DEPLOY_NAME }} - .*|Deploy ECS Service ${{ env.DEPLOY_NAME }} - ${{ steps.deploy.outcome }}|' slack_status.txt
+            sed -i 's|\*Deploy ECS Service ${{ env.DEPLOY_NAME }}\* - .*|\*Deploy ECS Service ${{ env.DEPLOY_NAME }}\* - ${{ steps.deploy.outcome }}|' slack_status.txt
 
 
       # Teardown Command
@@ -171,7 +176,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Teardown Command - .*|Teardown Command - ${{ steps.after-command.outcome }}|' slack_status.txt
+            sed -i 's|\*Teardown Command\* - .*|\*Teardown Command\* - ${{ steps.after-command.outcome }}|' slack_status.txt
       
       # Job End Status
       - name: Set job end status
