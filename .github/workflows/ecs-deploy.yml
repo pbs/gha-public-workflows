@@ -59,7 +59,7 @@ env:
   APP_NAME: ${{ vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
   DEPLOY_NAME: ${{ inputs.name != '' && inputs.name || format('{0}/{1}', inputs.ecs_cluster, inputs.ecs_service) }}
-  SLACK_TITLE: "ECS DEPLOY - ${{ vars.APP_NAME }} ON ${{ inputs.env }}"
+  SLACK_TITLE: "ECS DEPLOY - ${{ vars.APP_NAME }} -> ${{ inputs.env }}"
 
 
 jobs:
@@ -80,7 +80,7 @@ jobs:
           ECS_SERVICE: ${{ inputs.ecs_service }}
           AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          echo "*Code Checkout* - success :white_check_mark: " > slack_status.txt
+          echo "*Code Checkout* - _SUCCESS_ :white_check_mark: " > slack_status.txt
           echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
           echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
           echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
@@ -182,6 +182,7 @@ jobs:
       # Job End Status
       - name: Set job end status
         if: success() || failure()
+        id: end-status
         run: |
           if [[ "${{ steps.before-command.outcome }}" == "failure" ]]; then
             echo "::error step=before-command::Failed to run preparation command!"; exit 1
@@ -198,10 +199,12 @@ jobs:
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
         if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
+        env:
+          WF_STATUS: ${{ steps.end-status.outcome }}
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|\*WORKFLOW\* - .*|\*WORKFLOW\* - $([[ success() ]] && echo _PASSED_ || echo _FAILED_)|' slack_status.txt
+            sed -i 's|\*WORKFLOW\* - .*|\*WORKFLOW\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|' slack_status.txt
