@@ -72,11 +72,6 @@ runs:
           else
             echo "COLOR=90ee90" >> $GITHUB_OUTPUT
           fi
-#          if grep -q FAILURE $status_file; then
-#            echo "COLOR=ff0000" >> $GITHUB_OUTPUT
-#          else
-#            echo "COLOR=90ee90" >> $GITHUB_OUTPUT
-#          fi
         else
           echo "STATUS_OUTPUT=$status_msg" >> $GITHUB_OUTPUT
         fi
@@ -98,7 +93,7 @@ runs:
                 "fields": [
                   {
                     "short": false,
-                    "value": "${{ steps.pre.outputs.STATUS_OUTPUT }} \n DEBUG: ${{ job.status }} "
+                    "value": "${{ steps.pre.outputs.STATUS_OUTPUT }}"
                   }
                 ]
               }
