@@ -59,7 +59,7 @@ env:
   APP_NAME: ${{ vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
   DEPLOY_NAME: ${{ inputs.name != '' && inputs.name || format('{0}/{1}', inputs.ecs_cluster, inputs.ecs_service) }}
-  SLACK_TITLE: "APPLICATION: ${{ vars.APP_NAME }}; ENV: ${{ inputs.env }} - ECS DEPLOY"
+  SLACK_TITLE: "ECS DEPLOY - ${{ vars.APP_NAME }} ON ${{ inputs.env }}"
 
 
 jobs:

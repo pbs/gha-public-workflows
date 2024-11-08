@@ -49,7 +49,7 @@ on:
 
 env:
   APP_NAME: ${{ vars.APP_NAME }}
-  SLACK_TITLE: "APPLICATION: ${{ vars.APP_NAME }}; ENV: ${{ inputs.env }} - RUN COMMAND ${{ inputs.name }}"
+  SLACK_TITLE: "RUN COMMAND ${{ inputs.name }} -  ${{ vars.APP_NAME }} ON ${{ inputs.env }}"
 
 
 jobs:
