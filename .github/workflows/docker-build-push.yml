@@ -133,6 +133,7 @@ jobs:
           echo "*Docker Get SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
           echo "*Docker Publish SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
           echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
+          echo "*>>>>>WORKFLOW<<<<<* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
@@ -347,6 +348,7 @@ jobs:
 
       - name: Set job end status
         if: success() || failure()
+        id: end-status
         run: |
           if [[ "${{ steps.before-command.outcome }}" == "failure" ]]; then
             echo "::error step=before-command::Failed to run preparation for ${{ inputs.image_name }} image build"; exit 1
@@ -368,3 +370,13 @@ jobs:
             echo "::warning step=after-command::Failed to run teardown for ${{ inputs.image_name }} image build"; exit 0
           fi
 
+      - name: Update Slack
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
+        if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          title: ${{ env.SLACK_TITLE }}
+          update: ${{ steps.slack.outputs.update }}
+          status_file_update: |
+            sed -i "s|\*>>>>>WORKFLOW<<<<<\* - .*|\*>>>>>WORKFLOW<<<<<\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt

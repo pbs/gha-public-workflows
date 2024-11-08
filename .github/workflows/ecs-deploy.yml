@@ -86,7 +86,7 @@ jobs:
           echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
           echo "*Deploy ECS Service ${{ env.DEPLOY_NAME }}* - $([[ -n \"$ECS_SERVICE\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
           echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
-          echo "*WORKFLOW* - _RUNNING_" >> slack_status.txt
+          echo "*>>>>>WORKFLOW<<<<<* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
@@ -115,7 +115,7 @@ jobs:
       - name: Preparation Command
         if: inputs.before_command != ''
         id: before-command
-        run: ${{ inputs.before_command }}; exit 1
+        run: ${{ inputs.before_command }}
       
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
@@ -199,12 +199,10 @@ jobs:
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
         if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
-        env:
-          WF_STATUS: ${{ steps.end-status.outcome }}
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i "s|\*WORKFLOW\* - .*|\*WORKFLOW\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
+            sed -i "s|\*>>>>>WORKFLOW<<<<<\* - .*|\*>>>>>WORKFLOW<<<<<\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt

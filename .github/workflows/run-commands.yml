@@ -77,6 +77,7 @@ jobs:
           echo "*Run Command ${{ inputs.name }}* - $([[ -n \"$COMMAND\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
           echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
           echo "*Parsing Results* - $([[ \"${{ inputs.parser }}\" == true ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
+          echo "*>>>>>WORKFLOW<<<<<* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
@@ -178,6 +179,7 @@ jobs:
       # Job End Status
       - name: Set job end status
         if: success() || failure()
+        id: end-status
         run: |
           if [[ "${{ steps.before-command.outcome }}" == "failure" ]]; then
             echo "::error step=before-command::Failed to run preparation command!"; exit 1
@@ -190,3 +192,16 @@ jobs:
           if [[ "${{ steps.after-command.outcome }}" == "failure" ]]; then
             echo "::warning step=after-command::Failed to run teardown command!"; exit 0
           fi
+
+      - name: Update Slack
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
+        if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
+        env:
+          WF_STATUS: ${{ steps.end-status.outcome }}
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          title: ${{ env.SLACK_TITLE }}
+          update: ${{ steps.slack.outputs.update }}
+          status_file_update: |
+            sed -i "s|\*>>>>>WORKFLOW<<<<<\* - .*|\*>>>>>WORKFLOW<<<<<\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
