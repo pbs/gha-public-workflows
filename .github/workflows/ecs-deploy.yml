@@ -207,4 +207,4 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|\*WORKFLOW\* - .*|\*WORKFLOW\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|' slack_status.txt
+            sed -i "s|\*WORKFLOW\* - .*|\*WORKFLOW\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
