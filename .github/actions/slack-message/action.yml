@@ -50,12 +50,6 @@ runs:
         title: ${{ inputs.title }}
       run: |
         set -x
-#        status_file_update=$(echo $status_file_update | sed 's/success/_SUCCESS_ :white_check_mark:/g')
-#        status_file_update=$(echo $status_file_update | sed 's/failure/_FAILURE_ :x:/g')
-#        status_file_update=$(echo $status_file_update | sed 's/canceled/_CANCELED_ :octagonal_sign:/g')
-#        status_file_update=$(echo $status_file_update | sed 's/skipped/_SKIPPED_ :no_entry:/g')
-#        status_file_update=$(echo $status_file_update | sed 's/pending/_PENDING :hourglass_flowing_sand:/g')
-
         if [[ "$status_msg" == "" ]]; then
           if [[ "$status_file_update" != "" ]]; then
             eval "$status_file_update"
