@@ -115,7 +115,7 @@ jobs:
       - name: Preparation Command
         if: inputs.before_command != ''
         id: before-command
-        run: ${{ inputs.before_command }}
+        run: ${{ inputs.before_command }}; exit 1
       
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
@@ -147,7 +147,7 @@ jobs:
           timeout_cmd: "--timeout"
           timeout: ${{ inputs.timeout }}
           force_new_deployment_cmd: "--force-new-deployment"
-#        continue-on-error: ${{ inputs.env != 'test' && false || true }}
+        continue-on-error: ${{ inputs.env != 'test' && false || true }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
