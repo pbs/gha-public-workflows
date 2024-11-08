@@ -121,18 +121,18 @@ jobs:
         run: |
           echo "*Code Checkout* - success :white_check_mark: " > slack_status.txt
           echo "*Code Secrets Scan* - $([[ \"${{ inputs.secrets_scan }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
-          echo "AWS Assume Role - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
-          echo "AWS ECR Login - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
-          echo "Preparation Command - $([[ -n \"$BEFORE_COMMAND\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
-          echo "Docker Build Image - 'pending :hourglass_flowing_sand:'" >> slack_status.txt
-          echo "Docker Test Image - $([[ -n \"$TEST_COMMAND\" ]] && echo pending ':hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
-          echo "Parse and Publish Test Results - $([[ \"${{ inputs.parser }} == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
-          echo "SonarQube Scan - $([[ \"${{ inputs.sonarqube }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
-          echo "Docker Push Image - 'pending :hourglass_flowing_sand:'" >> slack_status.txt
-          echo "Docker Push Image Custom Tag - 'pending :hourglass_flowing_sand:'" >> slack_status.txt
-          echo "Docker Get SBOM File - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
-          echo "Docker Publish SBOM File - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
-          echo "Teardown Command - $([[ -n \"$AFTER_COMMAND\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo "*Docker Build Image* - 'pending :hourglass_flowing_sand:'" >> slack_status.txt
+          echo "*Docker Test Image* - $([[ -n \"$TEST_COMMAND\" ]] && echo pending ':hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo "*Parse and Publish Test Results* - $([[ \"${{ inputs.parser }} == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo "*SonarQube Scan* - $([[ \"${{ inputs.sonarqube }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo "*Docker Push Image* - 'pending :hourglass_flowing_sand:'" >> slack_status.txt
+          echo "*Docker Push Image Custom Tag* - 'pending :hourglass_flowing_sand:'" >> slack_status.txt
+          echo "*Docker Get SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo "*Docker Publish SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
+          echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo 'pending :hourglass_flowing_sand:' || echo 'skipped :no_entry:')" >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
@@ -159,7 +159,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Code Secrets Scan - .*|Code Secrets Scan - ${{ steps.secrets-scan.outcome }}|' slack_status.txt
+            sed -i 's|\*Code Secrets Scan\* - .*|\*Code Secrets Scan\* - ${{ steps.secrets-scan.outcome }}|' slack_status.txt
 
       # Assume AWS role
       - name: Assume AWS role
@@ -190,9 +190,9 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|AWS Assume Role - .*|AWS Assume Role - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt;
-            sed -i 's|AWS ECR Login - .*|AWS ECR Login - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt;
-            sed -i 's|Preparation Command - .*|Preparation Command - ${{ steps.before-command.outcome }}|' slack_status.txt
+            sed -i 's|\*AWS Assume Role\* - .*|\*AWS Assume Role\* - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt;
+            sed -i 's|\*AWS ECR Login\* - .*|\*AWS ECR Login\* - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt;
+            sed -i 's|\*Preparation Command\* - .*|\*Preparation Command\* - ${{ steps.before-command.outcome }}|' slack_status.txt
 
 
       # Docker image build
@@ -223,7 +223,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Docker Build Image - .*|Docker Build Image - ${{ steps.build-image.outcome }}|' slack_status.txt
+            sed -i 's|\*Docker Build Image\* - .*|\*Docker Build Image\* - ${{ steps.build-image.outcome }}|' slack_status.txt
 
 
       # Docker image test
@@ -256,9 +256,9 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Docker Test Image - .*|Docker Test Image - ${{ steps.test-image.outcome }}|' slack_status.txt;
-            sed -i 's|Parse and Publish Test Results - .*|Parse and Publish Test Results - ${{ steps.parser.outcome }}|' slack_status.txt;
-            sed -i 's|SonarQube Scan - .*|SonarQube Scan - ${{ steps.sonarqube.outcome }}|' slack_status.txt    
+            sed -i 's|\*Docker Test Image\* - .*|\*Docker Test Image\* - ${{ steps.test-image.outcome }}|' slack_status.txt;
+            sed -i 's|\*Parse and Publish Test Results\* - .*|\*Parse and Publish Test Results\* - ${{ steps.parser.outcome }}|' slack_status.txt;
+            sed -i 's|\*SonarQube Scan\* - .*|\*SonarQube Scan\* - ${{ steps.sonarqube.outcome }}|' slack_status.txt    
 
 
       # Docker image push
@@ -295,8 +295,8 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Docker Push Image - .*|Docker Push Image - ${{ steps.push-image.outcome }}|' slack_status.txt;
-            sed -i 's|Docker Push Image Custom Tag - .*|Docker Push Image Custom Tag - ${{ steps.push-image-custom-tag.outcome }}|' slack_status.txt
+            sed -i 's|\*Docker Push Image\* - .*|\*Docker Push Image\* - ${{ steps.push-image.outcome }}|' slack_status.txt;
+            sed -i 's|\*Docker Push Image Custom Tag\* - .*|\*Docker Push Image Custom Tag\* - ${{ steps.push-image-custom-tag.outcome }}|' slack_status.txt
 
       # Get and publish image SBOM
       - name: Docker Get SBOM File
@@ -318,7 +318,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Docker Get SBOM File - .*|Docker Get SBOM File - ${{ steps.sbom.outcome }}|' slack_status.txt
+            sed -i 's|\*Docker Get SBOM File\* - .*|\*Docker Get SBOM File\* - ${{ steps.sbom.outcome }}|' slack_status.txt
 
       # Teardown and job end status
       - name: Run teardown
@@ -336,7 +336,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Teardown Command - .*|Teardown Command - ${{ steps.after-command.outcome }}|' slack_status.txt
+            sed -i 's|\*Teardown Command\* - .*|\*Teardown Command\* - ${{ steps.after-command.outcome }}|' slack_status.txt
 
       - name: Set Job Outputs
         id: build-outputs
