@@ -133,7 +133,7 @@ jobs:
           echo "*Docker Get SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
           echo "*Docker Publish SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
           echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*>>>>>WORKFLOW<<<<<* - _RUNNING_" >> slack_status.txt
+          echo "*~~~~WORKFLOW~~~~* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
@@ -379,4 +379,4 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i "s|\*>>>>>WORKFLOW<<<<<\* - .*|\*>>>>>WORKFLOW<<<<<\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
+            sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
