@@ -84,13 +84,14 @@ runs:
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "text": "[${{ steps.pre.outputs.UPPER_TITLE }}",
             "attachments": [
               {
+                "title": "[${{ steps.pre.outputs.UPPER_TITLE }}",
+                "title_link": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
                 "color": "${{ steps.pre.outputs.COLOR }}",
                 "fields": [
                   {
-                    "short": true,
+                    "short": false,
                     "value": "${{ steps.pre.outputs.STATUS_OUTPUT }}"
                   }
                 ]
