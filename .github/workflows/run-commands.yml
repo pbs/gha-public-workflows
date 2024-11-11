@@ -49,7 +49,7 @@ on:
 
 env:
   APP_NAME: ${{ vars.APP_NAME }}
-  SLACK_TITLE: "${{ vars.APP_NAME }} ${{ inputs.env }} - RUN COMMAND ${{ inputs.name }}"
+  SLACK_TITLE: "RUN COMMAND ${{ inputs.name }} -  ${{ vars.APP_NAME }} -> ${{ inputs.env }}"
 
 
 jobs:
@@ -70,13 +70,14 @@ jobs:
           COMMAND: ${{ inputs.command }}
           AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          echo "Code Checkout - success" > slack_status.txt
-          echo "AWS Assume Role - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "AWS ECR Login - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Preparation Command - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Run Command ${{ inputs.name }} - $([[ -n \"$COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Teardown Command - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Parsing Results - $([[ \"${{ inputs.parser }}\" == true ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "*Code Checkout* - success " > slack_status.txt
+          echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Run Command ${{ inputs.name }}* - $([[ -n \"$COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Parsing Results* - $([[ \"${{ inputs.parser }}\" == true ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*~~~~WORKFLOW~~~~* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
@@ -106,7 +107,7 @@ jobs:
         if: inputs.before_command != ''
         id: before-command
         run: ${{ inputs.before_command }}
-      
+
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
         if: always() && vars.SLACK_CHANNEL_ID != ''
@@ -116,9 +117,9 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|AWS Assume Role - .*|AWS Assume Role - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt
-            sed -i 's|AWS ECR Login - .*|AWS ECR Login - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt
-            sed -i 's|Preparation Command - .*|Preparation Command - ${{ steps.before-command.outcome }}|' slack_status.txt
+            sed -i 's|\*AWS Assume Role\* - .*|\*AWS Assume Role\* - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt;
+            sed -i 's|\*AWS ECR Login\* - .*|\*AWS ECR Login\* - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt;
+            sed -i 's|\*Preparation Command\* - .*|\*Preparation Command\* - ${{ steps.before-command.outcome }}|' slack_status.txt
 
 
       # Run Command
@@ -136,7 +137,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Run Command ${{ inputs.name }} - .*|Run Command ${{ inputs.name }} - ${{ steps.command.outcome }}|' slack_status.txt
+            sed -i 's|\*Run Command ${{ inputs.name }}\* - .*|\*Run Command ${{ inputs.name }}\* - ${{ steps.command.outcome }}|' slack_status.txt
 
 
       # Teardown Command
@@ -155,7 +156,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Teardown Command - .*|Teardown Command - ${{ steps.after-command.outcome }}|' slack_status.txt
+            sed -i 's|\*Teardown Command\* - .*|\*Teardown Command\* - ${{ steps.after-command.outcome }}|' slack_status.txt
 
       - name: JUnit Parser
         if: inputs.parser == true
@@ -163,7 +164,7 @@ jobs:
         id: parser
         with:
           report_paths: ${{ inputs.report_paths }}
-      
+
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
         if: always() && inputs.parser == true && vars.SLACK_CHANNEL_ID != ''
@@ -173,11 +174,12 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Parsing Results - .*|Parsing Results - ${{ steps.parser.outcome }}|' slack_status.txt
+            sed -i 's|\*Parsing Results\* - .*|\*Parsing Results\* - ${{ steps.parser.outcome }}|' slack_status.txt
 
       # Job End Status
       - name: Set job end status
         if: success() || failure()
+        id: end-status
         run: |
           if [[ "${{ steps.before-command.outcome }}" == "failure" ]]; then
             echo "::error step=before-command::Failed to run preparation command!"; exit 1
@@ -190,3 +192,16 @@ jobs:
           if [[ "${{ steps.after-command.outcome }}" == "failure" ]]; then
             echo "::warning step=after-command::Failed to run teardown command!"; exit 0
           fi
+
+      - name: Update Slack
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
+        env:
+          WF_STATUS: ${{ steps.end-status.outcome }}
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          title: ${{ env.SLACK_TITLE }}
+          update: ${{ steps.slack.outputs.update }}
+          status_file_update: |
+            sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt

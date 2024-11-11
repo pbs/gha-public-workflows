@@ -50,18 +50,23 @@ runs:
         title: ${{ inputs.title }}
       run: |
         set -x
-        echo "UPPER_TITLE=$(echo "$title" | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
-        
         if [[ "$status_msg" == "" ]]; then
           if [[ "$status_file_update" != "" ]]; then
             eval "$status_file_update"
           fi
+             
+          sed -i 's/- success/- _SUCCESS_ :white_check_mark:/g' $status_file
+          sed -i 's/- failure/- _FAILURE_ :x:/g' $status_file
+          sed -i 's/- canceled/- _CANCELED_ :octagonal_sign:/g' $status_file
+          sed -i 's/- skipped/- _SKIPPED_ :no_entry:/g' $status_file
+          sed -i 's/- pending/- _PENDING_ :hourglass_flowing_sand:/g' $status_file
 
           awk '{printf "%s\\n", $0}' $status_file > slack_status_formatted.txt
           echo "STATUS_OUTPUT=$(cat slack_status_formatted.txt)" >> $GITHUB_OUTPUT
 
-          status_lower=$(cat slack_status_formatted.txt | tr '[:upper:]' '[:lower:]')
-          if grep -q failure $status_file; then
+          if grep -q "\*~~~~WORKFLOW~~~~\* - _RUNNING_" $status_file; then
+            echo "COLOR=ffff00" >> $GITHUB_OUTPUT 
+          elif grep -q "\*~~~~WORKFLOW~~~~\* - _FAILED_" $status_file; then
             echo "COLOR=ff0000" >> $GITHUB_OUTPUT
           else
             echo "COLOR=90ee90" >> $GITHUB_OUTPUT
@@ -79,13 +84,14 @@ runs:
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "text": "[${{ steps.pre.outputs.UPPER_TITLE }}",
             "attachments": [
               {
+                "title": "[${{ inputs.title }}]",
+                "title_link": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
                 "color": "${{ steps.pre.outputs.COLOR }}",
                 "fields": [
                   {
-                    "short": true,
+                    "short": false,
                     "value": "${{ steps.pre.outputs.STATUS_OUTPUT }}"
                   }
                 ]

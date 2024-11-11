@@ -91,7 +91,7 @@ on:
 env:
   APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
-  SLACK_TITLE: "${{ inputs.image_name || vars.APP_NAME }} ${{ inputs.env }} - DOCKER BUILD-TEST-PUSH"
+  SLACK_TITLE: "DOCKER BUILD - ${{ inputs.image_name || vars.APP_NAME }}:${{ inputs.image_build_tag }} -> ${{ inputs.env }}"
 
   # Update the CUSTOM_TAG with 'echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"' in any step before the push
   CUSTOM_TAG: ''
@@ -119,24 +119,25 @@ jobs:
           TEST_COMMAND: ${{ inputs.test_command }}
           AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          echo "Code Checkout - success" > slack_status.txt
-          echo "Code Secrets Scan - $([[ \"${{ inputs.secrets_scan }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "AWS Assume Role - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "AWS ECR Login - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Preparation Command - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Docker Build Image - pending" >> slack_status.txt
-          echo "Docker Test Image - $([[ -n \"$TEST_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Parse and Publish Test Results - $([[ \"${{ inputs.parser }} == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "SonarQube Scan - $([[ \"${{ inputs.sonarqube }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Docker Push Image - pending" >> slack_status.txt
-          echo "Docker Push Image Custom Tag - pending" >> slack_status.txt
-          echo "Docker Get SBOM File - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Docker Publish SBOM File - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo pending || echo skipped)" >> slack_status.txt
-          echo "Teardown Command - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending || echo skipped)" >> slack_status.txt
+          echo "*Code Checkout* - success  " > slack_status.txt
+          echo "*Code Secrets Scan* - $([[ \"${{ inputs.secrets_scan }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Docker Build Image* - pending " >> slack_status.txt
+          echo "*Docker Test Image* - $([[ -n \"$TEST_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Parse and Publish Test Results* - $([[ \"${{ inputs.parser }} == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*SonarQube Scan* - $([[ \"${{ inputs.sonarqube }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Docker Push Image* - pending " >> slack_status.txt
+          echo "*Docker Push Image Custom Tag* - pending " >> slack_status.txt
+          echo "*Docker Get SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Docker Publish SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*~~~~WORKFLOW~~~~* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
       - name: Slack Workflow start
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@main # change branch to main before merging
         if: vars.SLACK_CHANNEL_ID != ''
         id: slack
         with:
@@ -159,7 +160,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Code Secrets Scan - .*|Code Secrets Scan - ${{ steps.secrets-scan.outcome }}|' slack_status.txt
+            sed -i 's|\*Code Secrets Scan\* - .*|\*Code Secrets Scan\* - ${{ steps.secrets-scan.outcome }}|' slack_status.txt
 
       # Assume AWS role
       - name: Assume AWS role
@@ -190,15 +191,15 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|AWS Assume Role - .*|AWS Assume Role - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt
-            sed -i 's|AWS ECR Login - .*|AWS ECR Login - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt
-            sed -i 's|Preparation Command - .*|Preparation Command - ${{ steps.before-command.outcome }}|' slack_status.txt
+            sed -i 's|\*AWS Assume Role\* - .*|\*AWS Assume Role\* - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt;
+            sed -i 's|\*AWS ECR Login\* - .*|\*AWS ECR Login\* - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt;
+            sed -i 's|\*Preparation Command\* - .*|\*Preparation Command\* - ${{ steps.before-command.outcome }}|' slack_status.txt
 
 
       # Docker image build
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-  
+
       - name: Create and use a builder instance
         run: |
           docker buildx create --name builder --use
@@ -223,7 +224,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Docker Build Image - .*|Docker Build Image - ${{ steps.build-image.outcome }}|' slack_status.txt
+            sed -i 's|\*Docker Build Image\* - .*|\*Docker Build Image\* - ${{ steps.build-image.outcome }}|' slack_status.txt
 
 
       # Docker image test
@@ -238,7 +239,7 @@ jobs:
         id: parser
         with:
           report_paths: ${{ inputs.report_paths }}
-      
+
       - name: SonarQube Scan
         if: inputs.sonarqube == true
         id: sonarqube
@@ -246,7 +247,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-      
+
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
         if: always() && vars.SLACK_CHANNEL_ID != ''
@@ -256,16 +257,16 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Docker Test Image - .*|Docker Test Image - ${{ steps.test-image.outcome }}|' slack_status.txt
-            sed -i 's|Parse and Publish Test Results - .*|Parse and Publish Test Results - ${{ steps.parser.outcome }}|' slack_status.txt
-            sed -i 's|SonarQube Scan - .*|SonarQube Scan - ${{ steps.sonarqube.outcome }}|' slack_status.txt    
+            sed -i 's|\*Docker Test Image\* - .*|\*Docker Test Image\* - ${{ steps.test-image.outcome }}|' slack_status.txt;
+            sed -i 's|\*Parse and Publish Test Results\* - .*|\*Parse and Publish Test Results\* - ${{ steps.parser.outcome }}|' slack_status.txt;
+            sed -i 's|\*SonarQube Scan\* - .*|\*SonarQube Scan\* - ${{ steps.sonarqube.outcome }}|' slack_status.txt    
 
 
       # Docker image push
       - name: Docker Remove Old Images
         if: inputs.immutable == true
         run: aws ecr batch-delete-image --repository-name ${{ env.APP_NAME }} --image-ids imageTag=${{ inputs.image_build_tag }} imageTag=${{ env.CUSTOM_TAG }} imageTag=cache-${{ inputs.image_build_tag }}
-          
+
       - name: Docker Push Image
         uses: docker/build-push-action@v6
         id: push-image
@@ -295,8 +296,8 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Docker Push Image - .*|Docker Push Image - ${{ steps.push-image.outcome }}|' slack_status.txt
-            sed -i 's|Docker Push Image Custom Tag - .*|Docker Push Image Custom Tag - ${{ steps.push-image-custom-tag.outcome }}|' slack_status.txt
+            sed -i 's|\*Docker Push Image\* - .*|\*Docker Push Image\* - ${{ steps.push-image.outcome }}|' slack_status.txt;
+            sed -i 's|\*Docker Push Image Custom Tag\* - .*|\*Docker Push Image Custom Tag\* - ${{ steps.push-image-custom-tag.outcome }}|' slack_status.txt
 
       # Get and publish image SBOM
       - name: Docker Get SBOM File
@@ -318,7 +319,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Docker Get SBOM File - .*|Docker Get SBOM File - ${{ steps.sbom.outcome }}|' slack_status.txt
+            sed -i 's|\*Docker Get SBOM File\* - .*|\*Docker Get SBOM File\* - ${{ steps.sbom.outcome }}|' slack_status.txt
 
       # Teardown and job end status
       - name: Run teardown
@@ -336,7 +337,7 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i 's|Teardown Command - .*|Teardown Command - ${{ steps.after-command.outcome }}|' slack_status.txt
+            sed -i 's|\*Teardown Command\* - .*|\*Teardown Command\* - ${{ steps.after-command.outcome }}|' slack_status.txt
 
       - name: Set Job Outputs
         id: build-outputs
@@ -347,6 +348,7 @@ jobs:
 
       - name: Set job end status
         if: success() || failure()
+        id: end-status
         run: |
           if [[ "${{ steps.before-command.outcome }}" == "failure" ]]; then
             echo "::error step=before-command::Failed to run preparation for ${{ inputs.image_name }} image build"; exit 1
@@ -368,3 +370,13 @@ jobs:
             echo "::warning step=after-command::Failed to run teardown for ${{ inputs.image_name }} image build"; exit 0
           fi
 
+      - name: Update Slack
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          title: ${{ env.SLACK_TITLE }}
+          update: ${{ steps.slack.outputs.update }}
+          status_file_update: |
+            sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt

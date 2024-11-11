@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-    build-test-push:
+    build:
       uses: ./.github/workflows/docker-build-push.yml
       secrets: inherit
       with:
