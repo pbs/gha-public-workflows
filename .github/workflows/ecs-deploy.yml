@@ -90,7 +90,7 @@ jobs:
 
       # Slack Workflow start
       - name: Slack Workflow start
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
         if: always() && vars.SLACK_CHANNEL_ID != ''
         id: slack
         with:
@@ -116,9 +116,9 @@ jobs:
         if: inputs.before_command != ''
         id: before-command
         run: ${{ inputs.before_command }}
-      
+
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
         if: always() && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -150,7 +150,7 @@ jobs:
         continue-on-error: ${{ inputs.env != 'test' && false || true }}
 
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
         if: always() && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -169,7 +169,7 @@ jobs:
         continue-on-error: true
 
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
         if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -178,7 +178,7 @@ jobs:
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's|\*Teardown Command\* - .*|\*Teardown Command\* - ${{ steps.after-command.outcome }}|' slack_status.txt
-      
+
       # Job End Status
       - name: Set job end status
         if: success() || failure()
@@ -197,7 +197,7 @@ jobs:
           fi
 
       - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@slack_msg_improvement
         if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
