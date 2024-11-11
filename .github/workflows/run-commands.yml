@@ -70,13 +70,13 @@ jobs:
           COMMAND: ${{ inputs.command }}
           AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          echo "*Code Checkout* - _SUCCESS_ :white_check_mark: " > slack_status.txt
-          echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
-          echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
-          echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
-          echo "*Run Command ${{ inputs.name }}* - $([[ -n \"$COMMAND\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
-          echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
-          echo "*Parsing Results* - $([[ \"${{ inputs.parser }}\" == true ]] && echo pending :hourglass_flowing_sand: || echo skipped :no_entry:)" >> slack_status.txt
+          echo "*Code Checkout* - success " > slack_status.txt
+          echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Run Command ${{ inputs.name }}* - $([[ -n \"$COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*Parsing Results* - $([[ \"${{ inputs.parser }}\" == true ]] && echo pending  || echo skipped )" >> slack_status.txt
           echo "*~~~~WORKFLOW~~~~* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start

@@ -119,20 +119,20 @@ jobs:
           TEST_COMMAND: ${{ inputs.test_command }}
           AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          echo "*Code Checkout* - _SUCCESS_ :white_check_mark: " > slack_status.txt
-          echo "*Code Secrets Scan* - $([[ \"${{ inputs.secrets_scan }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*Docker Build Image* - _PENDING_ :hourglass_flowing_sand:" >> slack_status.txt
-          echo "*Docker Test Image* - $([[ -n \"$TEST_COMMAND\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*Parse and Publish Test Results* - $([[ \"${{ inputs.parser }} == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*SonarQube Scan* - $([[ \"${{ inputs.sonarqube }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*Docker Push Image* - _PENDING_ :hourglass_flowing_sand:" >> slack_status.txt
-          echo "*Docker Push Image Custom Tag* - _PENDING_ :hourglass_flowing_sand:" >> slack_status.txt
-          echo "*Docker Get SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*Docker Publish SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
-          echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo _PENDING_ :hourglass_flowing_sand: || echo _SKIPPED_ :no_entry:)" >> slack_status.txt
+          echo "*Code Checkout* - success  " > slack_status.txt
+          echo "*Code Secrets Scan* - $([[ \"${{ inputs.secrets_scan }}\" == \"true\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
+          echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
+          echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
+          echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
+          echo "*Docker Build Image* - _PENDING_ " >> slack_status.txt
+          echo "*Docker Test Image* - $([[ -n \"$TEST_COMMAND\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
+          echo "*Parse and Publish Test Results* - $([[ \"${{ inputs.parser }} == \"true\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
+          echo "*SonarQube Scan* - $([[ \"${{ inputs.sonarqube }}\" == \"true\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
+          echo "*Docker Push Image* - _PENDING_ " >> slack_status.txt
+          echo "*Docker Push Image Custom Tag* - _PENDING_ " >> slack_status.txt
+          echo "*Docker Get SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
+          echo "*Docker Publish SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
+          echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo _PENDING_  || echo _SKIPPED_ )" >> slack_status.txt
           echo "*~~~~WORKFLOW~~~~* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
