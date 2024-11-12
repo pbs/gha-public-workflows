@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 jobs:
-    update:
+    update-readme:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -35,12 +35,12 @@ jobs:
             - name: Update run-commands inputs in README.md
               run: action-docs --no-banner -t 3 -s ./.github/workflows/run-commands.yml --update-readme
 
-            - name: Check README.md
-              run: |
-                git branch
-                git diff
-                git status
+            - name: Check if README.md was updated
+              run: if [[ $(git diff README.md) ]]; then exit 0; else exit 1; fi
+              continue-on-error: true
 
             - uses: stefanzweifel/git-auto-commit-action@v5
+              if: success()
               with:
+                commit_message: 'Update README.md'
                 file_pattern: '*.md'
