@@ -78,27 +78,6 @@ jobs:
           docker run -t image-test:test echo "add another command ran inside the container"
 ```
 <!-- action-docs-inputs source="docker-build-push.yml" -->
-### Inputs
-
-| name | description | type | required | default |
-| --- | --- | --- | --- | --- |
-| `env` | <p>Environment</p> | `string` | `true` | `""` |
-| `before_command` | <p>(Optional) Command to prepare the environment</p> | `string` | `false` | `""` |
-| `test_command` | <p>Command to test the application</p> | `string` | `false` | `""` |
-| `after_command` | <p>(Optional) Command to teardown the environment</p> | `string` | `false` | `""` |
-| `assume_aws_role` | <p>Assume AWS role</p> | `boolean` | `false` | `true` |
-| `ecr_login` | <p>Login to ECR</p> | `boolean` | `false` | `true` |
-| `immutable` | <p>Repository is immutable</p> | `boolean` | `false` | `false` |
-| `secrets_scan` | <p>Scan code for secrets before build</p> | `boolean` | `false` | `true` |
-| `sbom` | <p>Retrieve and push the Docker image SBOM</p> | `boolean` | `false` | `false` |
-| `image_name` | <p>Docker image name</p> | `string` | `true` | `""` |
-| `image_build_tag` | <p>Docker image build tag</p> | `string` | `false` | `latest` |
-| `image_test_tag` | <p>Docker image test tag</p> | `string` | `false` | `test` |
-| `dockerfile` | <p>Path to the Dockerfile</p> | `string` | `false` | `./Dockerfile` |
-| `context` | <p>Build context for Docker</p> | `string` | `false` | `.` |
-| `parser` | <p>Publish test results using JUnit Parser</p> | `boolean` | `false` | `false` |
-| `report_paths` | <p>JUnit Parser report paths</p> | `string` | `false` | `outdist/*.xml` |
-| `sonarqube` | <p>Submit code coverage to Sonarqube</p> | `boolean` | `false` | `false` |
 <!-- action-docs-inputs source="docker-build-push.yml" -->
 
 ### ECS Deploy
@@ -117,21 +96,6 @@ jobs:
         image_tag: latest
 ```
 <!-- action-docs-inputs source="ecs-deploy.yml" -->
-### Inputs
-
-| name | description | type | required | default |
-| --- | --- | --- | --- | --- |
-| `env` | <p>Environment</p> | `string` | `true` | `""` |
-| `name` | <p>Deployment name</p> | `string` | `false` | `""` |
-| `before_command` | <p>(Optional) Command to prepare the environment</p> | `string` | `false` | `""` |
-| `after_command` | <p>(Optional) Command to teardown the environment</p> | `string` | `false` | `""` |
-| `assume_aws_role` | <p>Assume AWS role</p> | `boolean` | `false` | `true` |
-| `ecr_login` | <p>Login to ECR</p> | `boolean` | `false` | `true` |
-| `ecs_cluster` | <p>ECS cluster name</p> | `string` | `true` | `""` |
-| `ecs_service` | <p>ECS service name</p> | `string` | `true` | `""` |
-| `image_name` | <p>Docker image name</p> | `string` | `true` | `""` |
-| `image_tag` | <p>Docker image tag</p> | `string` | `false` | `latest` |
-| `timeout` | <p>ECS deploy timeout(seconds)</p> | `string` | `false` | `600` |
 <!-- action-docs-inputs source="ecs-deploy.yml" -->
 
 ### Run Commands
@@ -153,19 +117,6 @@ jobs:
           echo "add optional commands that cleans up the environment"
 ```
 <!-- action-docs-inputs source="run-commands.yml" -->
-### Inputs
-
-| name | description | type | required | default |
-| --- | --- | --- | --- | --- |
-| `env` | <p>Environment</p> | `string` | `true` | `""` |
-| `name` | <p>Command name</p> | `string` | `true` | `""` |
-| `before_command` | <p>(Optional) Command to prepare the environment</p> | `string` | `false` | `""` |
-| `command` | <p>Command to run</p> | `string` | `false` | `""` |
-| `after_command` | <p>(Optional) Command to teardown the environment</p> | `string` | `false` | `""` |
-| `assume_aws_role` | <p>Assume AWS role</p> | `boolean` | `false` | `true` |
-| `ecr_login` | <p>Login to ECR</p> | `boolean` | `false` | `true` |
-| `parser` | <p>Publish test results using JUnit Parser</p> | `boolean` | `false` | `false` |
-| `report_paths` | <p>JUnit Parser report paths</p> | `string` | `false` | `outdist/*.xml` |
 <!-- action-docs-inputs source="run-commands.yml" -->
 
 ### Secrets scanning

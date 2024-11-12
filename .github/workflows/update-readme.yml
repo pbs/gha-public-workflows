@@ -1,0 +1,46 @@
+name: Update README.md
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+        - opened
+        - reopened
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+    update:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                ref: ${{ github.head_ref }}
+
+            - uses: actions/setup-node@v4
+              with:
+                node-version: 20
+
+            - name: Install action-docs
+              run: npm install -g action-docs
+
+            - name: Update docker-build-push inputs in README.md
+              run: action-docs -t 3 -s .github/workflows/docker-build-push.yml --update-readme
+
+            - name: Update ecs-deploy inputs in README.md
+              run: action-docs -t 3 -s .github/workflows/ecs-deploy.yml --update-readme
+
+            - name: Update run-commands inputs in README.md
+              run: action-docs -t 3 -s .github/workflows/run-commands.yml --update-readme
+
+            - name: Check README.md
+              run: |
+                git branch
+                git diff
+                git status
+
+            - uses: stefanzweifel/git-auto-commit-action@v5
+              with:
+                file_pattern: '*.md'
