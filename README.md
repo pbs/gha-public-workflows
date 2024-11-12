@@ -77,8 +77,8 @@ jobs:
           echo "add commands that tests the image"
           docker run -t image-test:test echo "add another command ran inside the container"
 ```
-<!-- action-docs-inputs source="docker-build-push.yml" -->
-<!-- action-docs-inputs source="docker-build-push.yml" -->
+<!-- action-docs-inputs source="./.github/workflows/docker-build-push.yml" -->
+<!-- action-docs-inputs source="./.github/workflows/docker-build-push.yml" -->
 
 ### ECS Deploy
 #### *Deploy or update an AWS ECS service*
@@ -95,8 +95,8 @@ jobs:
         image_name: test-templates
         image_tag: latest
 ```
-<!-- action-docs-inputs source="ecs-deploy.yml" -->
-<!-- action-docs-inputs source="ecs-deploy.yml" -->
+<!-- action-docs-inputs source="./.github/workflows/ecs-deploy.yml" -->
+<!-- action-docs-inputs source="./.github/workflows/ecs-deploy.yml" -->
 
 ### Run Commands
 #### *Run shell commands*
@@ -116,8 +116,8 @@ jobs:
         after_command: |
           echo "add optional commands that cleans up the environment"
 ```
-<!-- action-docs-inputs source="run-commands.yml" -->
-<!-- action-docs-inputs source="run-commands.yml" -->
+<!-- action-docs-inputs source="./.github/workflows/run-commands.yml" -->
+<!-- action-docs-inputs source="./.github/workflows/run-commands.yml" -->
 
 ### Secrets scanning
 - the secrets scanning should be performed before other jobs

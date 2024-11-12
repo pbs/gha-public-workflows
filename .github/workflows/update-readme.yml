@@ -27,13 +27,13 @@ jobs:
               run: npm install -g action-docs
 
             - name: Update docker-build-push inputs in README.md
-              run: action-docs -t 3 -s .github/workflows/docker-build-push.yml --update-readme
+              run: action-docs --no-banner -t 3 -s ./.github/workflows/docker-build-push.yml --update-readme
 
             - name: Update ecs-deploy inputs in README.md
-              run: action-docs -t 3 -s .github/workflows/ecs-deploy.yml --update-readme
+              run: action-docs --no-banner -t 3 -s ./.github/workflows/ecs-deploy.yml --update-readme
 
             - name: Update run-commands inputs in README.md
-              run: action-docs -t 3 -s .github/workflows/run-commands.yml --update-readme
+              run: action-docs --no-banner -t 3 -s ./.github/workflows/run-commands.yml --update-readme
 
             - name: Check README.md
               run: |
