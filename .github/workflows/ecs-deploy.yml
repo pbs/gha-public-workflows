@@ -140,6 +140,7 @@ jobs:
           image_cmd: '--image'
           image: "${{ env.DOCKER_REGISTRY }}/${{ inputs.image_name }}:${{ inputs.image_tag }}"
           copy_task_definition_tags_cmd: '--copy-task-definition-tags'
+          verbose: "--verbose"
 #          region_cmd: "--region"
 #          region: ${{ vars.AWS_REGION }}
 #          service_name_cmd: '--service-name'
@@ -165,6 +166,7 @@ jobs:
           timeout_cmd: "--timeout"
           timeout: ${{ inputs.timeout }}
           force_new_deployment_cmd: "--force-new-deployment"
+          verbose: "--verbose"
         continue-on-error: ${{ inputs.env != 'test' && false || true }}
 
       - name: Update Slack
