@@ -147,6 +147,7 @@ jobs:
           timeout_cmd: "--timeout"
           timeout: ${{ inputs.timeout }}
           force_new_deployment_cmd: "--force-new-deployment"
+          verbose: "true"
         continue-on-error: ${{ inputs.env != 'test' && false || true }}
 
       - name: Update Slack
