@@ -42,7 +42,7 @@ jobs:
         after_command: pwd
         ecs_cluster: test-cluster
         ecs_service: test-service
-        image_name: test-templates
+        image_name: ${{ needs.build.outputs.image }}
         image_tag: ${{ needs.build.outputs.custom_tag }}
     run-commands:
       uses: ./.github/workflows/run-commands.yml
