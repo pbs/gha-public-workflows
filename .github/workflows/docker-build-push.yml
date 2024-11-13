@@ -87,6 +87,16 @@ on:
         required: false
         default: false
 
+    outputs:
+      image:
+        description: "Docker image name"
+        value: ${{ jobs.build.outputs.image }}
+      build_tag:
+        description: "Docker image tag"
+        value: ${{ jobs.build.outputs.build_tag }}
+      custom_tag:
+        description: "Docker image tag"
+        value: ${{ jobs.build.outputs.custom_tag }}
 
 env:
   APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
@@ -95,7 +105,6 @@ env:
 
   # Update the CUSTOM_TAG with 'echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"' in any step before the push
   CUSTOM_TAG: ''
-
 
 jobs:
   build:
