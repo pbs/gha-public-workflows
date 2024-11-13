@@ -42,7 +42,7 @@ jobs:
         ecs_cluster: test-cluster
         ecs_service: test-service
         image_name: test-templates
-        image_tag: latest
+        image_tag: ${{ needs.build.outputs.custom_tag }}
     run-commands:
       uses: ./.github/workflows/run-commands.yml
       secrets: inherit
