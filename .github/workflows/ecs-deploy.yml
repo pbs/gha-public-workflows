@@ -130,6 +130,24 @@ jobs:
             sed -i 's|\*AWS ECR Login\* - .*|\*AWS ECR Login\* - ${{ steps.aws-ecr-login.outcome }}|' slack_status.txt;
             sed -i 's|\*Preparation Command\* - .*|\*Preparation Command\* - ${{ steps.before-command.outcome }}|' slack_status.txt
 
+      # Update ECS task definition
+      - name: Update ECS Task Definition ${{ env.DEPLOY_NAME }}
+        id: update-taskdef
+        uses: silinternational/ecs-deploy@master
+        with:
+          task_definition_cmd: "--task-definition"
+          task_definition: "${{ inputs.ecs_service }}"
+          image_cmd: '--image'
+          image: "${{ env.DOCKER_REGISTRY }}/${{ inputs.image_name }}:${{ inputs.image_tag }}"
+          copy_task_definition_tags_cmd: '--copy-task-definition-tags'
+#          region_cmd: "--region"
+#          region: ${{ vars.AWS_REGION }}
+#          service_name_cmd: '--service-name'
+#          service_name: "${{ inputs.ecs_service }}"
+#          timeout_cmd: "--timeout"
+#          timeout: ${{ inputs.timeout }}
+#          force_new_deployment_cmd: "--force-new-deployment"
+        continue-on-error: ${{ inputs.env != 'test' && false || true }}
 
       # Deploy ECS Service
       - name: Deploy ECS Service ${{ env.DEPLOY_NAME }}
