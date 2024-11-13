@@ -342,9 +342,9 @@ jobs:
       - name: Set Job Outputs
         id: build-outputs
         run: |
-          echo "::set-output name=image::${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}"
-          echo "::set-output name=build_tag::${{ inputs.image_build_tag }}"
-          echo "::set-output name=custom_tag::${{ env.CUSTOM_TAG }}"
+          echo "image=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}" >> "$GITHUB_OUTPUT"
+          echo "build_tag=${{ inputs.image_build_tag }}" >> "$GITHUB_OUTPUT"
+          echo "custom_tag=${{ env.CUSTOM_TAG }}" >> "$GITHUB_OUTPUT"
 
       - name: Set job end status
         if: success() || failure()
