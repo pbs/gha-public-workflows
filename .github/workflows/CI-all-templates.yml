@@ -35,6 +35,7 @@ jobs:
     deploy:
       uses: ./.github/workflows/ecs-deploy.yml
       secrets: inherit
+      needs: build
       with:
         env: test
         before_command: pwd
