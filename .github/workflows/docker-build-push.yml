@@ -90,13 +90,13 @@ on:
     outputs:
       image:
         description: "Docker image name"
-        value: ${{ build.steps.build-outputs.outputs.image }}
+        value: ${{ jobs.build.outputs.image }}
       build_tag:
         description: "Docker image tag"
-        value: ${{ build.steps.build_tag.outputs.image }}
+        value: ${{ jobs.build.outputs.build_tag }}
       custom_tag:
         description: "Docker image tag"
-        value: ${{ build.steps.custom_tag.outputs.image }}
+        value: ${{ jobs.build.outputs.custom_tag }}
 
 env:
   APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
