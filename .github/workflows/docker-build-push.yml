@@ -351,7 +351,7 @@ jobs:
       - name: Set Job Outputs
         id: build-outputs
         run: |
-          echo "image=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}" >> "$GITHUB_OUTPUT"
+          echo "image=${{ env.APP_NAME }}" >> "$GITHUB_OUTPUT"
           echo "build_tag=${{ inputs.image_build_tag }}" >> "$GITHUB_OUTPUT"
           echo "custom_tag=${{ env.CUSTOM_TAG }}" >> "$GITHUB_OUTPUT"
 
