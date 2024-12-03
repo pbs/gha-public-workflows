@@ -89,12 +89,6 @@ runs:
                 "title": "[${{ inputs.title }}]",
                 "title_link": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
                 "color": "${{ steps.pre.outputs.COLOR }}",
-                "fields": [
-                  {
-                    "short": false,
-                    "value": "${{ steps.pre.outputs.STATUS_OUTPUT }}"
-                  }
-                ]
               }
             ]
           }
