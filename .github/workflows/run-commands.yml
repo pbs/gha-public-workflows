@@ -222,7 +222,6 @@ jobs:
       - name: Slack Workflow start
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
         if: vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg != ''
-        id: slack
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
