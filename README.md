@@ -166,6 +166,7 @@ jobs:
 | `ecr_login` | <p>Login to ECR</p> | `boolean` | `false` | `true` |
 | `parser` | <p>Publish test results using JUnit Parser</p> | `boolean` | `false` | `false` |
 | `report_paths` | <p>JUnit Parser report paths</p> | `string` | `false` | `outdist/*.xml` |
+| `brief_slack_msg` | <p>Custom slack message for job end</p> | `string` | `false` | `""` |
 <!-- action-docs-inputs source="./.github/workflows/run-commands.yml" -->
 
 ### Secrets scanning
