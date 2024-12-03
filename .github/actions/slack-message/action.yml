@@ -32,6 +32,11 @@ inputs:
     description: 'Status file update command'
     required: false
     default: ""
+  short_msg:
+    type: boolean
+    description: 'Send brief msg to slack'
+    required: false
+    default: false
 
 outputs:
   update:
@@ -78,13 +83,47 @@ runs:
 
     - id: slack
       uses: slackapi/slack-github-action@v1.26.0
-      if: steps.pre.outputs.STATUS_OUTPUT != ''
+      if: steps.pre.outputs.STATUS_OUTPUT != '' && short_msg == false
       with:
         channel-id: ${{ inputs.channel_id }}
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "text": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "attachments": [
+              {
+                "title": "[${{ inputs.title }}]",
+                "title_link": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                "color": "${{ steps.pre.outputs.COLOR }}",
+                "fields": [
+                  {
+                    "short": false,
+                    "value": "${{ steps.pre.outputs.STATUS_OUTPUT }}"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ inputs.token }}
+      continue-on-error: true
+
+    - id: brief_slack
+      uses: slackapi/slack-github-action@v1.26.0
+      if: steps.pre.outputs.STATUS_OUTPUT != '' && short_msg == true
+      with:
+        channel-id: ${{ inputs.channel_id }}
+        update-ts: ${{ inputs.update }}
+        payload: |
+          {
+            "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "${{ steps.pre.outputs.STATUS_OUTPUT }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              }
+            }
+          ]
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
