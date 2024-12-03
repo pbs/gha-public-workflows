@@ -220,7 +220,7 @@ jobs:
 
       # Brief Slack Workflow status
       - name: Slack Workflow start
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg
         if: vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg != ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
