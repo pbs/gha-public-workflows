@@ -20,3 +20,4 @@ jobs:
         after_command: |
           pwd
         parser: true
+        brief_slack_msg: '[run-commands] - test :'
