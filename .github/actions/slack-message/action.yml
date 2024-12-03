@@ -107,7 +107,7 @@ runs:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
       continue-on-error: true
 
-    - id: brief_slack
+    - id: briefslack
       uses: slackapi/slack-github-action@v1.26.0
       if: steps.pre.outputs.STATUS_OUTPUT != '' && inputs.short_msg == true
       with:
