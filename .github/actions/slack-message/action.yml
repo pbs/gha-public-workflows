@@ -84,13 +84,7 @@ runs:
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "attachments": [
-              {
-                "title": "[${{ inputs.title }}]",
-                "title_link": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-                "color": "${{ steps.pre.outputs.COLOR }}",
-              }
-            ]
+            "text": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
