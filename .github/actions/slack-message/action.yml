@@ -83,7 +83,7 @@ runs:
 
     - id: slack
       uses: slackapi/slack-github-action@v1.26.0
-      if: steps.pre.outputs.STATUS_OUTPUT != '' && ${{ ! inputs.short_msg }}
+      if: steps.pre.outputs.STATUS_OUTPUT != '' && ${{ inputs.short_msg  == 'false'}}
       with:
         channel-id: ${{ inputs.channel_id }}
         update-ts: ${{ inputs.update }}
@@ -109,7 +109,7 @@ runs:
 
     - id: briefslack
       uses: slackapi/slack-github-action@v1.26.0
-      if: steps.pre.outputs.STATUS_OUTPUT != '' && ${{ inputs.short_msg }}
+      if: steps.pre.outputs.STATUS_OUTPUT != '' && ${{ inputs.short_msg == 'true' }}
       with:
         channel-id: ${{ inputs.channel_id }}
         update-ts: ${{ inputs.update }}
