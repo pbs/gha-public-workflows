@@ -12,6 +12,14 @@ permissions:
   contents: read
 
 jobs:
+    init-brief-slack:
+      runs-on: ubuntu-latest
+      environment: ${{ inputs.env }}
+      steps:
+        - name: init-slack-msg
+          run: |
+            echo "" > brief_status.txt
+
     build:
       uses: ./.github/workflows/docker-build-push.yml
       secrets: inherit
@@ -58,3 +66,21 @@ jobs:
         after_command: pwd
         # parser: true
         brief_slack_msg: '[run-commands] - test :'
+
+    # Brief Slack Workflow status
+    slack-brief:
+      runs-on: ubuntu-latest
+      environment: ${{ inputs.env }}
+      steps:
+        - name: Read status file
+          id: statusmsg
+          run: |
+            echo "BRIEF_MSG=$(cat brief_status.txt)" >> $GITHUB_OUTPUT
+
+        - name: Brief slack message
+          uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg
+          with:
+            channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+            token: ${{ secrets.SLACK_BOT_TOKEN }}
+            title: "dummy"
+            status_msg: "${{ steps.statusmsg.outputs.BRIEF_MSG }}"

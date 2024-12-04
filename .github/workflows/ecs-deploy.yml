@@ -72,7 +72,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
     steps:
-      # Get code, permissions and set environment
       - name: Code Checkout
         uses: actions/checkout@main
         with:
@@ -217,14 +216,4 @@ jobs:
         id: briefmsg
         if: inputs.brief_slack_msg != ''
         run: |
-          echo "BRIEF_MSG=*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)" >> $GITHUB_OUTPUT
-
-      # Brief Slack Workflow status
-      - name: Slack Workflow start
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg
-        if: vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg != ''
-        with:
-          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: ${{ env.SLACK_TITLE }}
-          status_msg: "${{ steps.briefmsg.outputs.BRIEF_MSG }}"
+          echo "*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)\n" >> brief_status.txt
