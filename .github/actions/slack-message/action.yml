@@ -107,6 +107,13 @@ runs:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
       continue-on-error: true
 
+    - name: Format message
+      id: formatmsg
+      if: inputs.status_msg != ''
+      run: |
+        FORMATED_MSG="$(echo \"<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ toJSON(inputs.status_msg) }}>\" | sed -z 's/\"/\'/g')"
+        echo "formated_msg=$FORMATED_MSG" >> $GITHUB_OUTPUT
+
     - id: briefslack
       uses: slackapi/slack-github-action@v1.26.0
       if: inputs.status_msg != ''
@@ -116,7 +123,7 @@ runs:
         payload: |
           {
             "type": "mrkdwn",
-            "text": ${{ toJSON("<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ inputs.status_msg }}>") }}
+            "text": "${{ steps.formatmsg.outputs.formated_msg }}"
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
