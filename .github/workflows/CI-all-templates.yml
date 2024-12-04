@@ -80,8 +80,15 @@ jobs:
           with:
             name: slack-artifact
             path: slack
-        - run: echo "BRIEF_MSG=$(cat slack/brief_status.txt)" >> $GITHUB_OUTPUT
-          id: slackmsg
+
+        - id: slackmsg
+          run: |
+            {
+              echo 'BRIEF_MSG<<EOF'
+              cat slack/brief_status.txt
+              echo
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
 
         - name: Brief slack message
           uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg
