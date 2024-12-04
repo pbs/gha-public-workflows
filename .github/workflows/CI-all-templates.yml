@@ -69,6 +69,8 @@ jobs:
 
     # Brief Slack Workflow status
     slack-brief:
+      if: ${{ always() }}
+      needs: [ build, deploy, run-commands ]
       runs-on: ubuntu-latest
       environment: ${{ inputs.env }}
       steps:
