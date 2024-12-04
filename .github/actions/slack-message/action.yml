@@ -78,6 +78,7 @@ runs:
         else
           echo "STATUS_OUTPUT=$status_msg" >> $GITHUB_OUTPUT
         fi
+        echo ${{ inputs.short_msg  }}
       continue-on-error: true
 
     - id: slack
