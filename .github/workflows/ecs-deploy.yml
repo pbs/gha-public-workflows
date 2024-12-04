@@ -213,8 +213,17 @@ jobs:
 
       # Brief Slack msg content
       - name: Format brief slack msg
+        uses: actions/download-artifact@v4
         id: briefmsg
         if: inputs.brief_slack_msg != ''
+        with:
+          name: slack-artifact
+          path: slack
         run: |
-          echo "${{ env.BRIEF_STATUS }}"
-          echo "BRIEF_STATUS=${{ env.BRIEF_STATUS }}*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)\n" >> "$GITHUB_ENV"
+          cat slack/brief_status.txt
+          echo "*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)\n" >> slack/brief_status.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slack-artifact
+          path: slack

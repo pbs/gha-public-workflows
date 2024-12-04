@@ -19,9 +19,11 @@ jobs:
       runs-on: ubuntu-latest
       environment: ${{ inputs.env }}
       steps:
-        - name: init-slack-msg
-          run: |
-            echo "" > brief_status.txt
+        - run: mkdir -p slack; echo "" > slack/brief_status.txt
+        - uses: actions/upload-artifact@v4
+          with:
+            name: slack-artifact
+            path: slack
 
     build:
       uses: ./.github/workflows/docker-build-push.yml
@@ -77,10 +79,12 @@ jobs:
       runs-on: ubuntu-latest
       environment: ${{ inputs.env }}
       steps:
-#        - name: Read status file
-#          id: statusmsg
-#          run: |
-#            echo "BRIEF_MSG=$(cat brief_status.txt)" >> $GITHUB_OUTPUT
+        - uses: actions/download-artifact@v4
+          id: slackmsg
+          with:
+            name: slack-artifact
+            path: slack
+          run: echo "BRIEF_MSG=$(cat slack/brief_status.txt)" >> $GITHUB_OUTPUT
 
         - name: Brief slack message
           uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg
@@ -88,4 +92,4 @@ jobs:
             channel_id: ${{ vars.SLACK_CHANNEL_ID }}
             token: ${{ secrets.SLACK_BOT_TOKEN }}
             title: "dummy"
-            status_msg: ${{ env.BRIEF_STATUS }}
+            status_msg: ${{ steps.slackmsg.outputs.BRIEF_MSG }}
