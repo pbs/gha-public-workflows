@@ -213,14 +213,15 @@ jobs:
             sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
 
       # Brief Slack msg content
-      - name: Format brief slack msg
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         id: briefmsg
         if: inputs.brief_slack_msg != ''
         with:
           name: slack-artifact
           path: slack
+      - name: Format brief slack msg
         run: |
+          cat slack/brief_status.txt
           echo "*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)\n" >> slack/brief_status.txt
 
       - uses: actions/upload-artifact@v4
