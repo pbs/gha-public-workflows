@@ -73,7 +73,7 @@ jobs:
       if: ${{ always() }}
       needs: [ build, deploy, run-commands ]
       runs-on: ubuntu-latest
-      environment: ${{ inputs.env }}
+      environment: test
       steps:
         - uses: actions/download-artifact@v4
           with:
@@ -91,10 +91,8 @@ jobs:
 
         - name: Brief slack message
           uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg_v2
-          env:
-            TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           with:
             channel_id: ${{ vars.SLACK_CHANNEL_ID }}
-            token: $TOKEN
+            token: ${{ secrets.SLACK_BOT_TOKEN }}
             title: "dummy"
             status_msg: ${{ steps.slackmsg.outputs.BRIEF_MSG }}
