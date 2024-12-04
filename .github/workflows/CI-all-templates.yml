@@ -19,7 +19,7 @@ jobs:
       runs-on: ubuntu-latest
       environment: ${{ inputs.env }}
       steps:
-        - run: mkdir -p slack; echo "" > slack/brief_status.txt
+        - run: mkdir -p slack; echo "T" > slack/brief_status.txt
         - uses: actions/upload-artifact@v4
           with:
             name: slack-artifact
