@@ -11,9 +11,6 @@ permissions:
   id-token: write
   contents: read
 
-env:
-  BRIEF_STATUS: ""
-
 jobs:
     init-brief-slack:
       runs-on: ubuntu-latest
@@ -80,11 +77,11 @@ jobs:
       environment: ${{ inputs.env }}
       steps:
         - uses: actions/download-artifact@v4
-          id: slackmsg
           with:
             name: slack-artifact
             path: slack
         - run: echo "BRIEF_MSG=$(cat slack/brief_status.txt)" >> $GITHUB_OUTPUT
+          id: slackmsg
 
         - name: Brief slack message
           uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg
