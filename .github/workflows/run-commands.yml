@@ -217,4 +217,5 @@ jobs:
         id: briefmsg
         if: inputs.brief_slack_msg != ''
         run: |
-          echo "*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)\n" >> brief_status.txt
+          echo "${{ env.BRIEF_STATUS }}"
+          echo "BRIEF_STATUS=${{ env.BRIEF_STATUS }}*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)\n" >> "$GITHUB_ENV"

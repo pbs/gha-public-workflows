@@ -11,6 +11,9 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  BRIEF_STATUS: ""
+
 jobs:
     init-brief-slack:
       runs-on: ubuntu-latest
@@ -74,10 +77,10 @@ jobs:
       runs-on: ubuntu-latest
       environment: ${{ inputs.env }}
       steps:
-        - name: Read status file
-          id: statusmsg
-          run: |
-            echo "BRIEF_MSG=$(cat brief_status.txt)" >> $GITHUB_OUTPUT
+#        - name: Read status file
+#          id: statusmsg
+#          run: |
+#            echo "BRIEF_MSG=$(cat brief_status.txt)" >> $GITHUB_OUTPUT
 
         - name: Brief slack message
           uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg
@@ -85,4 +88,4 @@ jobs:
             channel_id: ${{ vars.SLACK_CHANNEL_ID }}
             token: ${{ secrets.SLACK_BOT_TOKEN }}
             title: "dummy"
-            status_msg: "${{ steps.statusmsg.outputs.BRIEF_MSG }}"
+            status_msg: ${{ env.BRIEF_STATUS }}
