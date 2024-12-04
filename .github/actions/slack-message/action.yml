@@ -110,7 +110,8 @@ runs:
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "text": "${{ inputs.status_msg }}"
+            "type": "mrkdwn",
+            "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ inputs.status_msg }}>"
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
