@@ -226,5 +226,4 @@ jobs:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           title: ${{ env.SLACK_TITLE }}
-          short_msg: true
           status_msg: "*${{ inputs.brief_slack_msg }}* - $([[ '${{ steps.end-status.outcome }}' == 'success' ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)"
