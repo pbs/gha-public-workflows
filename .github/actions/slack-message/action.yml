@@ -110,6 +110,7 @@ runs:
     - name: Format message
       id: formatmsg
       if: inputs.status_msg != ''
+      shell: bash
       run: |
         FORMATED_MSG="$(echo \"<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ toJSON(inputs.status_msg) }}>\" | sed -z 's/\"/\'/g')"
         echo "formated_msg=$FORMATED_MSG" >> $GITHUB_OUTPUT
