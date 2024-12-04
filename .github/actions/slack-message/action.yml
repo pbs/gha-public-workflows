@@ -72,7 +72,12 @@ runs:
             echo "COLOR=90ee90" >> $GITHUB_OUTPUT
           fi
         else
-          echo "STATUS_OUTPUT=$status_msg" >> $GITHUB_OUTPUT
+          {
+            echo 'STATUS_OUTPUT<<EOF'
+            echo $status_msg
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+        
         fi
       continue-on-error: true
 

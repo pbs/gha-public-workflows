@@ -14,7 +14,6 @@ permissions:
 jobs:
     init-brief-slack:
       runs-on: ubuntu-latest
-      environment: ${{ inputs.env }}
       steps:
         - run: mkdir -p slack; echo "T" > slack/brief_status.txt
         - uses: actions/upload-artifact@v4
@@ -92,8 +91,10 @@ jobs:
 
         - name: Brief slack message
           uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg
+          env:
+            TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           with:
             channel_id: ${{ vars.SLACK_CHANNEL_ID }}
-            token: ${{ secrets.SLACK_BOT_TOKEN }}
+            token: $TOKEN
             title: "dummy"
             status_msg: ${{ steps.slackmsg.outputs.BRIEF_MSG }}
