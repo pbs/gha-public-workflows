@@ -33,7 +33,6 @@ inputs:
     required: false
     default: ""
   short_msg:
-    type: boolean
     description: 'Send brief msg to slack'
     required: false
     default: false
@@ -83,7 +82,7 @@ runs:
 
     - id: slack
       uses: slackapi/slack-github-action@v1.26.0
-      if: steps.pre.outputs.STATUS_OUTPUT != '' && ${{ inputs.short_msg  == 'false'}}
+      if: steps.pre.outputs.STATUS_OUTPUT != '' && ${{ inputs.short_msg  }} == 'false'
       with:
         channel-id: ${{ inputs.channel_id }}
         update-ts: ${{ inputs.update }}
@@ -109,21 +108,16 @@ runs:
 
     - id: briefslack
       uses: slackapi/slack-github-action@v1.26.0
-      if: steps.pre.outputs.STATUS_OUTPUT != '' && ${{ inputs.short_msg == 'true' }}
+      if: steps.pre.outputs.STATUS_OUTPUT != '' && ${{ inputs.short_msg }} == 'true'
       with:
         channel-id: ${{ inputs.channel_id }}
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "blocks": [
-            {
-              "type": "section",
-              "text": {
+            "text": {
                 "type": "mrkdwn",
                 "text": "${{ steps.pre.outputs.STATUS_OUTPUT }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
               }
-            }
-          ]
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
