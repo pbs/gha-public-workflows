@@ -212,11 +212,12 @@ jobs:
           status_file_update: |
             sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
 
-#      # Brief Slack msg content
-#      - name: Slack Status file
-#        if: inputs.brief_slack_msg != ''
-#        run: |
-#          echo "*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)" > slack_status.txt
+      # Brief Slack msg content
+      - name: Format brief slack msg
+        id: briefmsg
+        if: inputs.brief_slack_msg != ''
+        run: |
+          echo "BRIEF_MSG=*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)" >> $GITHUB_OUTPUT
 
       # Brief Slack Workflow status
       - name: Slack Workflow start
@@ -226,4 +227,4 @@ jobs:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           title: ${{ env.SLACK_TITLE }}
-          status_msg: "*${{ inputs.brief_slack_msg }}* - $([[ '${{ steps.end-status.outcome }}' == 'success' ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:)"
+          status_msg: "${{ steps.briefmsg.outputs.BRIEF_MSG }}"
