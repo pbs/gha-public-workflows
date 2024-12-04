@@ -90,7 +90,7 @@ jobs:
             } >> "$GITHUB_OUTPUT"
 
         - name: Brief slack message
-          uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg
+          uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg_v2
           env:
             TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           with:
