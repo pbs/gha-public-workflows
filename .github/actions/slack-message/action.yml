@@ -116,7 +116,7 @@ runs:
         payload: |
           {
             "type": "mrkdwn",
-            "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ toJSON(inputs.status_msg) }}>"
+            "text": toJSON("<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ inputs.status_msg }}>")
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}
