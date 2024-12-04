@@ -112,8 +112,8 @@ runs:
       if: inputs.status_msg != ''
       shell: bash
       run: |
-        FORMATED_MSG="$(echo \"<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ toJSON(inputs.status_msg) }}>\" | sed -z 's/\"/\'/g')"
-        echo "formated_msg=$FORMATED_MSG" >> $GITHUB_OUTPUT
+        FORMATED_MSG="$(echo ${{ toJSON(inputs.status_msg) }} | sed -z 's/\"//g')"
+        echo "formated_msg=<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ toJSON(inputs.status_msg) }}>" >> $GITHUB_OUTPUT
 
     - id: briefslack
       uses: slackapi/slack-github-action@v1.26.0
