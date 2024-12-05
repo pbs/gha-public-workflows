@@ -408,7 +408,7 @@ jobs:
       - name: Format brief slack msg
         if: inputs.brief_slack_msg != ''
         run: |
-          [ -f slack/brief_status.txt ] && cat slack/brief_status.txt;
+          [ -f slack/brief_status.txt ] && cat slack/brief_status.txt || (mkdir -p slack ; touch slack/brief_status.txt);
           echo "*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:) " >> slack/brief_status.txt
       - name: Upload file containing brief slack msg
         if: inputs.brief_slack_msg != ''
