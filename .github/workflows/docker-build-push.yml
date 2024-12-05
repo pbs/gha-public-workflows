@@ -404,6 +404,7 @@ jobs:
         with:
           name: slack-artifact
           path: slack
+        continue-on-error: true
       - name: Format brief slack msg
         if: inputs.brief_slack_msg != ''
         run: |

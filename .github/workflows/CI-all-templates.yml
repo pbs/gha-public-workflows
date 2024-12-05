@@ -32,6 +32,7 @@ jobs:
         # sbom: true
         # parser: true
         # sonarqube: true
+        brief_slack_msg: '[build] - test :'
     deploy:
       uses: ./.github/workflows/ecs-deploy.yml
       secrets: inherit
@@ -44,6 +45,7 @@ jobs:
         ecs_service: test-service
         image_name: ${{ needs.build.outputs.image }}
         image_tag: ${{ needs.build.outputs.custom_tag }}
+        brief_slack_msg: '[deploy] - test :'
     run-commands:
       uses: ./.github/workflows/run-commands.yml
       secrets: inherit
@@ -55,3 +57,10 @@ jobs:
           pwd
         after_command: pwd
         # parser: true
+        brief_slack_msg: '[run-commands] - test :'
+
+    post-workflow-action:
+      uses: ./.github/workflows/post-workflow-actions.yml
+      if: ${{ always() }}
+      needs: [ build, deploy, run-commands ]
+      secrets: inherit

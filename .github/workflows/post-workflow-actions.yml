@@ -1,0 +1,32 @@
+name: Template - Post workflow actions
+
+on:
+  workflow_call:
+
+
+jobs:
+  # Brief Slack Workflow status
+  slack-brief:
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: slack-artifact
+          path: slack
+
+      - id: slackmsg
+        run: |
+          {
+            echo 'BRIEF_MSG<<EOF'
+            cat slack/brief_status.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Brief slack message
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg_v2
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          title: "dummy"
+          status_msg: ${{ steps.slackmsg.outputs.BRIEF_MSG }}
