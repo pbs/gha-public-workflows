@@ -72,13 +72,18 @@ runs:
             echo "COLOR=90ee90" >> $GITHUB_OUTPUT
           fi
         else
-          echo "STATUS_OUTPUT=$status_msg" >> $GITHUB_OUTPUT
+          {
+            echo 'STATUS_OUTPUT<<EOF'
+            echo $status_msg
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+        
         fi
       continue-on-error: true
 
     - id: slack
       uses: slackapi/slack-github-action@v1.26.0
-      if: steps.pre.outputs.STATUS_OUTPUT != ''
+      if: steps.pre.outputs.STATUS_OUTPUT != '' && inputs.status_msg == ''
       with:
         channel-id: ${{ inputs.channel_id }}
         update-ts: ${{ inputs.update }}
@@ -97,6 +102,29 @@ runs:
                 ]
               }
             ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ inputs.token }}
+      continue-on-error: true
+
+    - name: Format message
+      id: formatmsg
+      if: inputs.status_msg != ''
+      shell: bash
+      run: |
+        FORMATED_MSG="$(echo ${{ toJSON(inputs.status_msg) }} | sed -z 's/\"//g')"
+        echo "formated_msg=$FORMATED_MSG <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK>" >> $GITHUB_OUTPUT
+
+    - id: briefslack
+      uses: slackapi/slack-github-action@v1.26.0
+      if: inputs.status_msg != ''
+      with:
+        channel-id: ${{ inputs.channel_id }}
+        update-ts: ${{ inputs.update }}
+        payload: |
+          {
+            "type": "mrkdwn",
+            "text": "${{ steps.formatmsg.outputs.formated_msg }}"
           }
       env:
         SLACK_BOT_TOKEN: ${{ inputs.token }}

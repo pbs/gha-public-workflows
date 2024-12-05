@@ -54,6 +54,11 @@ on:
         description: 'ECS deploy timeout(seconds)'
         default: "600"
         required: false
+      brief_slack_msg:
+        type: string
+        description: 'Custom slack message for job end'
+        required: false
+        default: ''
 
 env:
   APP_NAME: ${{ vars.APP_NAME }}
@@ -67,7 +72,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
     steps:
-      # Get code, permissions and set environment
       - name: Code Checkout
         uses: actions/checkout@main
         with:
@@ -75,6 +79,7 @@ jobs:
 
       # Slack preparation
       - name: Slack Status file
+        if: inputs.brief_slack_msg == ''
         env:
           BEFORE_COMMAND: ${{ inputs.before_command }}
           ECS_SERVICE: ${{ inputs.ecs_service }}
@@ -91,7 +96,7 @@ jobs:
       # Slack Workflow start
       - name: Slack Workflow start
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
-        if: always() && vars.SLACK_CHANNEL_ID != ''
+        if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
         id: slack
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
@@ -119,7 +124,7 @@ jobs:
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
-        if: always() && vars.SLACK_CHANNEL_ID != ''
+        if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -150,7 +155,7 @@ jobs:
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
-        if: always() && vars.SLACK_CHANNEL_ID != ''
+        if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -169,7 +174,7 @@ jobs:
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
-        if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != ''
+        if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -197,7 +202,7 @@ jobs:
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
-        if: always() && vars.SLACK_CHANNEL_ID != ''
+        if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -205,3 +210,25 @@ jobs:
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
+
+      # Brief Slack msg content
+      - name: Download file containing brief slack msg
+        uses: actions/download-artifact@v4
+        id: briefmsg
+        if: inputs.brief_slack_msg != ''
+        with:
+          name: slack-artifact
+          path: slack
+        continue-on-error: true
+      - name: Format brief slack msg
+        if: inputs.brief_slack_msg != ''
+        run: |
+          [ -f slack/brief_status.txt ] && cat slack/brief_status.txt || (mkdir -p slack ; touch slack/brief_status.txt);
+          echo "*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:) " >> slack/brief_status.txt
+      - name: Upload file containing brief slack msg
+        if: inputs.brief_slack_msg != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: slack-artifact
+          path: slack
+          overwrite: true
