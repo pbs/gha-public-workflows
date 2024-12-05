@@ -24,7 +24,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Brief slack message
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@CAT-24618_brief_slack_msg_v2
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
         with:
           channel_id: ${{ vars.SLACK_CHANNEL_ID }}
           token: ${{ secrets.SLACK_BOT_TOKEN }}
