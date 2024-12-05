@@ -83,7 +83,7 @@ jobs:
         - id: slackmsg
           run: |
             {
-              echo BRIEF_MSG<<EOF
+              echo 'BRIEF_MSG<<EOF'
               cat slack/brief_status.txt
               echo EOF
             } >> "$GITHUB_OUTPUT"
