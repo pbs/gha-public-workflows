@@ -99,6 +99,7 @@ jobs:
 | `parser` | <p>Publish test results using JUnit Parser</p> | `boolean` | `false` | `false` |
 | `report_paths` | <p>JUnit Parser report paths</p> | `string` | `false` | `outdist/*.xml` |
 | `sonarqube` | <p>Submit code coverage to Sonarqube</p> | `boolean` | `false` | `false` |
+| `brief_slack_msg` | <p>Custom slack message for job end</p> | `string` | `false` | `""` |
 <!-- action-docs-inputs source="./.github/workflows/docker-build-push.yml" -->
 
 ### ECS Deploy
@@ -132,6 +133,7 @@ jobs:
 | `image_name` | <p>Docker image name</p> | `string` | `true` | `""` |
 | `image_tag` | <p>Docker image tag</p> | `string` | `false` | `latest` |
 | `timeout` | <p>ECS deploy timeout(seconds)</p> | `string` | `false` | `600` |
+| `brief_slack_msg` | <p>Custom slack message for job end</p> | `string` | `false` | `""` |
 <!-- action-docs-inputs source="./.github/workflows/ecs-deploy.yml" -->
 
 ### Run Commands
@@ -166,6 +168,7 @@ jobs:
 | `ecr_login` | <p>Login to ECR</p> | `boolean` | `false` | `true` |
 | `parser` | <p>Publish test results using JUnit Parser</p> | `boolean` | `false` | `false` |
 | `report_paths` | <p>JUnit Parser report paths</p> | `string` | `false` | `outdist/*.xml` |
+| `brief_slack_msg` | <p>Custom slack message for job end</p> | `string` | `false` | `""` |
 <!-- action-docs-inputs source="./.github/workflows/run-commands.yml" -->
 
 ### Secrets scanning

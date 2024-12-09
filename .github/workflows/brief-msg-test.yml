@@ -1,0 +1,66 @@
+name: CI - all templates
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - reopened
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+    build:
+      uses: ./.github/workflows/docker-build-push.yml
+      secrets: inherit
+      with:
+        env: test
+        immutable: true
+        image_name: test-templates
+        image_build_tag: latest
+        image_test_tag: test
+        before_command: |
+          pwd
+          CUSTOM_TAG="latest-custom"
+          echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
+        test_command: |
+          pwd
+        after_command: |
+          pwd
+        # sbom: true
+        # parser: true
+        # sonarqube: true
+        brief_slack_msg: '[build] - test :'
+    deploy:
+      uses: ./.github/workflows/ecs-deploy.yml
+      secrets: inherit
+      needs: build
+      with:
+        env: test
+        before_command: pwd
+        after_command: pwd
+        ecs_cluster: test-cluster
+        ecs_service: test-service
+        image_name: ${{ needs.build.outputs.image }}
+        image_tag: ${{ needs.build.outputs.custom_tag }}
+        brief_slack_msg: '[deploy] - test :'
+    run-commands:
+      uses: ./.github/workflows/run-commands.yml
+      secrets: inherit
+      with:
+        env: test
+        name: testing123
+        before_command: pwd
+        command: |
+          pwd
+        after_command: pwd
+        # parser: true
+        brief_slack_msg: '[run-commands] - test :'
+
+    post-workflow-action:
+      uses: ./.github/workflows/post-workflow-actions.yml
+      if: ${{ always() }}
+      needs: [ build, deploy, run-commands ]
+      secrets: inherit
