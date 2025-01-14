@@ -103,6 +103,12 @@ on:
         description: "Docker image tag"
         value: ${{ jobs.build.outputs.custom_tag }}
 
+    secrets:
+      SLACK_BOT_TOKEN:
+        required: false
+      SONAR_TOKEN:
+        required: false
+
 env:
   APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
