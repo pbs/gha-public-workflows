@@ -106,8 +106,6 @@ on:
     secrets:
       SLACK_BOT_TOKEN:
         required: false
-      SONAR_TOKEN:
-        required: false
 
 env:
   APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
