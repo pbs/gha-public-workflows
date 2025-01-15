@@ -55,6 +55,7 @@ on:
     secrets:
       SLACK_BOT_TOKEN:
         required: false
+        
 env:
   APP_NAME: ${{ vars.APP_NAME }}
   SLACK_TITLE: "RUN COMMAND ${{ inputs.name }} -  ${{ vars.APP_NAME }} -> ${{ inputs.env }}"
