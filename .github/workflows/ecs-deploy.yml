@@ -60,6 +60,10 @@ on:
         required: false
         default: ''
 
+    secrets:
+      SLACK_BOT_TOKEN:
+        required: false
+        
 env:
   APP_NAME: ${{ vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
