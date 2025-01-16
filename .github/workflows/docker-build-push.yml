@@ -118,18 +118,6 @@ env:
   CUSTOM_TAG: ''
 
 jobs:
-  debug:
-    name: Debug
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
-      - name: Debug
-        run: |
-          echo ${{secrets.SLACK_BOT_TOKEN}} | sed 's/./& /g'
-          echo ${{secrets.SONAR_TOKEN}} | sed 's/./& /g'
   build:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
