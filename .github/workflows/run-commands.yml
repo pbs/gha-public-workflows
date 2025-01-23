@@ -41,6 +41,11 @@ on:
         description: 'Publish test results using JUnit Parser'
         required: false
         default: false
+      test_reports:
+        type: boolean
+        description: 'Create reports in GHA UI pased on pytest xml files'
+        required: false
+        default: false
       report_paths:
         type: string
         description: 'JUnit Parser report paths'
@@ -174,6 +179,13 @@ jobs:
         id: parser
         with:
           report_paths: ${{ inputs.report_paths }}
+      
+      - name: Test Reports
+        if: inputs.test_reports == true
+        uses: xportation/junit-coverage-report@main
+        with:
+          junit-path: ${{ inputs.report_paths }}
+          coverage-path: ${{ inputs.report_paths }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
