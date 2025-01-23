@@ -181,7 +181,7 @@ jobs:
           report_paths: ${{ inputs.report_paths }}
       
       - name: Test Reports
-        if: inputs.test_reports == true
+        if: always() && inputs.test_reports == true
         uses: xportation/junit-coverage-report@main
         with:
           junit-path: ${{ inputs.report_paths }}
