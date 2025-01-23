@@ -51,12 +51,6 @@ on:
         description: 'JUnit Parser report paths'
         required: false
         default: 'outdist/*.xml'
-      junit_xml_file:
-        type: string
-        required: false
-      converage_xml_file:
-        type: string
-        required: false
       brief_slack_msg:
         type: string
         description: 'Custom slack message for job end'
@@ -180,18 +174,11 @@ jobs:
             sed -i 's|\*Teardown Command\* - .*|\*Teardown Command\* - ${{ steps.after-command.outcome }}|' slack_status.txt
 
       - name: JUnit Parser
-        if: inputs.parser == true && (${{ steps.command.outcome }} == "SUCCESS" || ${{ steps.command.outcome }} == "FAILURE")
+        if: always() && inputs.parser == true
         uses: mikepenz/action-junit-report@v4
         id: parser
         with:
           report_paths: ${{ inputs.report_paths }}
-      
-      - name: Test Reports
-        if: always() && inputs.test_reports == true
-        uses: xportation/junit-coverage-report@main
-        with:
-          junit-path: ${{ inputs.junit_xml_file }}
-          coverage-path: ${{ inputs.converage_xml_file }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
