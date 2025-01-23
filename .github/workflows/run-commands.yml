@@ -51,6 +51,12 @@ on:
         description: 'JUnit Parser report paths'
         required: false
         default: 'outdist/*.xml'
+      junit_xml_file:
+        type: string
+        required: false
+      converage_xml_file:
+        type: string
+        required: false
       brief_slack_msg:
         type: string
         description: 'Custom slack message for job end'
@@ -184,8 +190,8 @@ jobs:
         if: always() && inputs.test_reports == true
         uses: xportation/junit-coverage-report@main
         with:
-          junit-path: ${{ inputs.report_paths }}
-          coverage-path: ${{ inputs.report_paths }}
+          junit-path: ${{ inputs.junit_xml_file }}
+          coverage-path: ${{ inputs.converage_xml_file }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
