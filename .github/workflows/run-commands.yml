@@ -169,7 +169,7 @@ jobs:
             sed -i 's|\*Teardown Command\* - .*|\*Teardown Command\* - ${{ steps.after-command.outcome }}|' slack_status.txt
 
       - name: JUnit Parser
-        if: success() || failure() && inputs.parser == true
+        if: ( success() || failure() ) && inputs.parser == true
         uses: mikepenz/action-junit-report@v4
         id: parser
         with:
