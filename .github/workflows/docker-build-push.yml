@@ -198,10 +198,18 @@ jobs:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
 
       # AWS ECR Login
+      - name: Get registry_id / AWS account
+        if: inputs.ecr_login == true
+        run: |
+          REGISTRY_ID=$(echo ${{ env.DOCKER_REGISTRY }} | cut -d'.' -f 1)
+          echo REGISTRY_ID=$REGISTRY_ID >> $GITHUB_ENV
+          
       - name: AWS ECR Login
         if: inputs.ecr_login == true
         uses: aws-actions/amazon-ecr-login@v2
         id: aws-ecr-login
+        with:
+          registries: "${{ env.REGISTRY_ID }}"
 
       - name: Run preparation
         if: inputs.before_command != ''
