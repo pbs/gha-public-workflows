@@ -116,7 +116,7 @@ on:
 
 env:
   APP_NAME: ${{ inputs.image_name || vars.APP_NAME }}
-  DOCKER_REGISTRY: ${{ inputs.custom_registry }} || ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+  DOCKER_REGISTRY: ${{ inputs.custom_registry || format('{0}.dkr.ecr.{1}.amazonaws.com', vars.AWS_ACCOUNT, vars.AWS_REGION) }}
   SLACK_TITLE: "DOCKER BUILD - ${{ inputs.image_name || vars.APP_NAME }}:${{ inputs.image_build_tag }} -> ${{ inputs.env }}"
 
   # Update the CUSTOM_TAG with 'echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"' in any step before the push
