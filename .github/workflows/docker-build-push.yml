@@ -299,7 +299,7 @@ jobs:
       # Docker image push
       - name: Docker Remove Old Images
         if: inputs.immutable == true
-        run: aws ecr batch-delete-image --repository-name ${{ env.APP_NAME }} --image-ids imageTag=${{ inputs.image_build_tag }} imageTag=${{ env.CUSTOM_TAG }} imageTag=cache-${{ inputs.image_build_tag }}
+        run: aws ecr batch-delete-image --registry-id ${{ env.REGISTRY_ID }} --repository-name ${{ env.APP_NAME }} --image-ids imageTag=${{ inputs.image_build_tag }} imageTag=${{ env.CUSTOM_TAG }} imageTag=cache-${{ inputs.image_build_tag }}
 
       - name: Docker Push Image
         uses: docker/build-push-action@v6
