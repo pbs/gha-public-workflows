@@ -59,6 +59,11 @@ on:
         description: 'Custom slack message for job end'
         required: false
         default: ''
+      custom_registry:
+        type: string
+        description: 'Custom registry path'
+        required: false
+        default: ''
 
     secrets:
       SLACK_BOT_TOKEN:
@@ -66,7 +71,7 @@ on:
         
 env:
   APP_NAME: ${{ vars.APP_NAME }}
-  DOCKER_REGISTRY: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+  DOCKER_REGISTRY: ${{ inputs.custom_registry || format('{0}.dkr.ecr.{1}.amazonaws.com', vars.AWS_ACCOUNT, vars.AWS_REGION) }}
   DEPLOY_NAME: ${{ inputs.name != '' && inputs.name || format('{0}/{1}', inputs.ecs_cluster, inputs.ecs_service) }}
   SLACK_TITLE: "ECS DEPLOY - ${{ vars.APP_NAME }} -> ${{ inputs.env }}"
 
