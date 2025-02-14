@@ -126,7 +126,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
-    name: ${{ inputs.image_name }}
+    name: build ${{ inputs.image_name }}
     outputs:
       image: ${{ steps.build-outputs.outputs.image }}
       build_tag: ${{ steps.build-outputs.outputs.build_tag }}
