@@ -80,7 +80,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
-    name: deploy ${{ inputs.name }}
+    name: deploy ${{ inputs.image_name }}
     steps:
       - name: Code Checkout
         uses: actions/checkout@main
