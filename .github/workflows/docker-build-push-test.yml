@@ -27,4 +27,4 @@ jobs:
           pwd
         # sbom: true
         # parser: true
-        # sonarqube: true
+        sonarqube: true
