@@ -54,6 +54,10 @@ on:
 env:
   APP_NAME: ${{ inputs.app_name  }}
 
+defaults:
+ run:
+  working-directory: ${{ inputs.tf_workdir}}
+
 jobs:
   tf-drift:
     runs-on: ubuntu-latest
