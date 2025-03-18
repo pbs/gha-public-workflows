@@ -1,0 +1,98 @@
+name: Template - Check fo terraform drift
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        type: string
+        description: 'Application name'
+        required: true
+      env:
+        type: string
+        description: 'Environment'
+        required: true
+      tf_workdir:
+        type: string
+        description: 'Directory where terraform should be run'
+        required: true
+      tf_version:
+        type: string
+        description: 'Terraform version to use'
+        required: true
+      tf_backend_path:
+        type: string
+        description: 'Terraform backend file path, relative to tf_workdir'
+        required: false
+        default: ''
+      tf_vars_path:
+        type: string
+        description: 'Terraform vars file path, relative to tf_workdir'
+        required: false
+        default: ''
+      additional_init_args:
+        type: string
+        description: '[Optional] Additional args to be added to tf init command'
+        required: false
+        default: ''
+      additional_plan_args:
+        type: string
+        description: '[Optional] Additional args to be added to tf plan command'
+        required: false
+        default: ''
+
+
+#    outputs:
+#      image:
+#        description: "Docker image name"
+#        value: ${{ jobs.build.outputs.image }}
+
+
+    secrets:
+      SLACK_BOT_TOKEN:
+        required: false
+
+env:
+  APP_NAME: ${{ inputs.app_name  }}
+
+jobs:
+  tf-drift:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+    name: build ${{ inputs.app_name }}
+#    outputs:
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      # Assume AWS role
+      - name: Assume AWS role
+        uses: aws-actions/configure-aws-credentials@v4
+        id: aws-assume-role
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "${{ inputs.tf_version }}"
+
+      - name: Terraform Init
+        id: init
+        env:
+          TFBACKEND: ${{ inputs.tf_backend_path }}
+        run: |
+          [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
+          terraform init $backendarg ${{ inputs.additional_init_args}}
+
+      - name: Terraform Plan
+        id: plan
+        env:
+          TFBACKEND: ${{ inputs.tf_backend_path }}
+          TFVARS: ${{ inputs.tf_vars_path }}
+        run: |
+          [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
+          [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
+          terraform init $backendarg $varsarg ${{ inputs.additional_plan_args}}
