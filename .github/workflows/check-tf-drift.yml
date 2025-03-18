@@ -56,7 +56,7 @@ env:
 
 defaults:
  run:
-  working-directory: ${{ inputs.tf_workdir }}
+  working-directory: ./${{ inputs.tf_workdir }}
 
 jobs:
   tf-drift:
