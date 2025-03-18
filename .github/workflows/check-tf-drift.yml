@@ -95,4 +95,4 @@ jobs:
         run: |
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
-          terraform init $backendarg $varsarg ${{ inputs.additional_plan_args}}
+          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}}
