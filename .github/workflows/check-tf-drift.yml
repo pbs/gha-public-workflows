@@ -97,6 +97,12 @@ jobs:
           [profile ${{ inputs.aws_profile }}]
           region = us-east-1
           EOL
+          touch ~/.aws/credentials
+          cat >> ~/.aws/credentials << EOL
+          [pbs-dummy]
+          role_arn       = arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
+          source_profile = default
+          EOL
           cat  ~/.aws/config
           echo DEBUG2
           aws configure list
