@@ -95,30 +95,6 @@ jobs:
           aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile ${{ inputs.aws_profile }}
           aws configure set aws_session_token "$AWS_SESSION_TOKEN" --profile ${{ inputs.aws_profile }}
           aws configure set region "$AWS_REGION" --profile ${{ inputs.aws_profile }}
-          cat  ~/.aws/config
-          echo DEBUG2
-          aws configure list
-          env
-
-#      - name: Configure AWS profile
-#        if: inputs.aws_profile != ''
-#        run: |
-#          mkdir -p ~/.aws
-#          touch ~/.aws/config
-#          cat >> ~/.aws/config << EOL
-#          [profile ${{ inputs.aws_profile }}]
-#          region = us-east-1
-#          EOL
-#          touch ~/.aws/credentials
-#          cat >> ~/.aws/credentials << EOL
-#          [pbs-dummy]
-#          role_arn       = arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
-#          source_profile = default
-#          EOL
-#          cat  ~/.aws/config
-#          echo DEBUG2
-#          aws configure list
-#          env
 
       - name: Terraform Init
         id: init
@@ -137,4 +113,35 @@ jobs:
         run: |
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
-          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}}
+          export exitcode=0
+          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan || export exitcode=$?
+          
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+        
+          if [ $exitcode -eq 1 ]; then
+            echo Terraform Plan Failed!
+            exit 1
+          else 
+            exit 0
+          fi
+
+      - name: Create String Output
+        id: tf-plan-string
+        run: |
+          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+          
+          echo "summary<<EOL" >> $GITHUB_OUTPUT
+          echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo '```terraform' >> $GITHUB_OUTPUT
+          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
+          echo '```' >> $GITHUB_OUTPUT
+          echo "</details>" >> $GITHUB_OUTPUT
+          echo "EOL" >> $GITHUB_OUTPUT
+
+      - name: Publish Terraform Plan to Task Summary
+        env:
+          SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
+        run: |
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
