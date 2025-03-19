@@ -154,10 +154,17 @@ jobs:
         run: |
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
-      - name: Brief slack message
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+      - name: Prepare slack message
+        id: slackmsg
+        run: |
+          MESSAGE="${{ inputs.app_name }} terraform drift!!! \n ${{ steps.tf-plan-string.outputs.tfplan }}"
+          echo "formated_msg=$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT
+
+      - name: briefslack
+        uses: slackapi/slack-github-action@v2.0.0
         with:
-          channel_id: ${{ inputs.slack_channel_id }}
+          method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: "${{ inputs.app_name }} terraform drift!!!"
-          status_msg: ${{ steps.tf-plan-string.outputs.tfplan }}
+          payload: |
+            channel: ${{ inputs.slack_channel_id }}
+            text: "${{ steps.slackmsg.outputs.formated_msg }}"
