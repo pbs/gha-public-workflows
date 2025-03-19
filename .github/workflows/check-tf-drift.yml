@@ -19,6 +19,10 @@ on:
         type: string
         description: 'Terraform version to use'
         required: true
+      aws_profile:
+        type: string
+        description: 'AWS profile name'
+        required: true
       tf_backend_path:
         type: string
         description: 'Terraform backend file path, relative to tf_workdir'
@@ -84,11 +88,22 @@ jobs:
         with:
           terraform_version: "${{ inputs.tf_version }}"
 
+      - name: Configure AWS profile
+        if: inputs.aws_profile == ''
+        run: |
+          cat >> ~/.aws/config << EOL
+          [profile ${{ inputs.aws_profile }}]
+          credential_source=Environment
+          region = us-east-1
+          EOL
+          cat  ~/.aws/config
+
       - name: Terraform Init
         id: init
         env:
           TFBACKEND: ${{ inputs.tf_backend_path }}
         run: |
+          echo 
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           terraform init $backendarg ${{ inputs.additional_init_args}}
 
