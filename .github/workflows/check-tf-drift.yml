@@ -98,6 +98,7 @@ jobs:
           cat >> ~/.aws/config << EOL
           [profile ${{ inputs.aws_profile }}]
           credential_source=Environment
+          role_arn = arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
           region = us-east-1
           EOL
           cat  ~/.aws/config
