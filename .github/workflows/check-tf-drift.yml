@@ -91,12 +91,17 @@ jobs:
       - name: Configure AWS profile
         if: inputs.aws_profile != ''
         run: |
+          echo DEBUG1
+          aws configure list
+          touch ~/.aws/config
           cat >> ~/.aws/config << EOL
           [profile ${{ inputs.aws_profile }}]
           credential_source=Environment
           region = us-east-1
           EOL
           cat  ~/.aws/config
+          echo DEBUG2
+          aws configure list
 
       - name: Terraform Init
         id: init
