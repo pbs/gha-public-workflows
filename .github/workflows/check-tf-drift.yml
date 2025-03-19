@@ -92,8 +92,8 @@ jobs:
         if: inputs.aws_profile != ''
         run: |
           aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile ${{ inputs.aws_profile }}
-          aws configure set aws_secret_access_key "AWS_SECRET_ACCESS_KEY" --profile ${{ inputs.aws_profile }}
-          aws configure set region "AWS_REGION" --profile ${{ inputs.aws_profile }}
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile ${{ inputs.aws_profile }}
+          aws configure set region "$AWS_REGION" --profile ${{ inputs.aws_profile }}
           cat  ~/.aws/config
           echo DEBUG2
           aws configure list
