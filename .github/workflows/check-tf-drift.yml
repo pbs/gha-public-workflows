@@ -158,7 +158,9 @@ jobs:
         id: slackmsg
         run: |
           MESSAGE="${{ inputs.app_name }} terraform drift!!! \n ${{ steps.tf-plan-string.outputs.tfplan }}"
-          echo "formated_msg=$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT
+          echo "formated_msg<<EOL" >> $GITHUB_OUTPUT
+          echo "$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT
+          echo "EOL" >> $GITHUB_OUTPUT
 
       - name: briefslack
         uses: slackapi/slack-github-action@v2.0.0
