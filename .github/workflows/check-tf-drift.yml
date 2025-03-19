@@ -89,7 +89,7 @@ jobs:
           terraform_version: "${{ inputs.tf_version }}"
 
       - name: Configure AWS profile
-        if: inputs.aws_profile == ''
+        if: inputs.aws_profile != ''
         run: |
           cat >> ~/.aws/config << EOL
           [profile ${{ inputs.aws_profile }}]
