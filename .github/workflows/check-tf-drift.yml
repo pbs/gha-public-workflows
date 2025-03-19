@@ -170,4 +170,4 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ inputs.slack_channel_id }}
-            text: ${{ steps.slackmsg.outputs.formated_msg }}
+            text: "${{ steps.slackmsg.outputs.formated_msg }}"
