@@ -91,22 +91,33 @@ jobs:
       - name: Configure AWS profile
         if: inputs.aws_profile != ''
         run: |
-          mkdir -p ~/.aws
-          touch ~/.aws/config
-          cat >> ~/.aws/config << EOL
-          [profile ${{ inputs.aws_profile }}]
-          region = us-east-1
-          EOL
-          touch ~/.aws/credentials
-          cat >> ~/.aws/credentials << EOL
-          [pbs-dummy]
-          role_arn       = arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
-          source_profile = default
-          EOL
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile ${{ inputs.aws_profile }}
+          aws configure set aws_secret_access_key "AWS_SECRET_ACCESS_KEY" --profile ${{ inputs.aws_profile }}
+          aws configure set region "AWS_REGION" --profile ${{ inputs.aws_profile }}
           cat  ~/.aws/config
           echo DEBUG2
           aws configure list
           env
+
+#      - name: Configure AWS profile
+#        if: inputs.aws_profile != ''
+#        run: |
+#          mkdir -p ~/.aws
+#          touch ~/.aws/config
+#          cat >> ~/.aws/config << EOL
+#          [profile ${{ inputs.aws_profile }}]
+#          region = us-east-1
+#          EOL
+#          touch ~/.aws/credentials
+#          cat >> ~/.aws/credentials << EOL
+#          [pbs-dummy]
+#          role_arn       = arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
+#          source_profile = default
+#          EOL
+#          cat  ~/.aws/config
+#          echo DEBUG2
+#          aws configure list
+#          env
 
       - name: Terraform Init
         id: init
