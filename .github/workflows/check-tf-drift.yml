@@ -23,6 +23,10 @@ on:
         type: string
         description: 'AWS profile name'
         required: true
+      slack_channel_id:
+        type: string
+        description: 'Slack channel ID where to send the message'
+        required: true
       tf_backend_path:
         type: string
         description: 'Terraform backend file path, relative to tf_workdir'
@@ -130,6 +134,10 @@ jobs:
         run: |
           TERRAFORM_PLAN=$(terraform show -no-color tfplan)
           
+          echo "tfplan<<EOL" >> $GITHUB_OUTPUT
+          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
+          echo "EOL" >> $GITHUB_OUTPUT
+          
           echo "summary<<EOL" >> $GITHUB_OUTPUT
           echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
           echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
@@ -145,3 +153,11 @@ jobs:
           SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
         run: |
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+      - name: Brief slack message
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        with:
+          channel_id: ${{ inputs.slack_channel_id }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          title: "${{ inputs.app_name }} terraform drift!!!"
+          status_msg: ${{ steps.tf-plan-string.outputs.tfplan }}
