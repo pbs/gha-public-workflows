@@ -93,6 +93,7 @@ jobs:
         run: |
           echo DEBUG1
           aws configure list
+          mkdir -p ~/.aws
           touch ~/.aws/config
           cat >> ~/.aws/config << EOL
           [profile ${{ inputs.aws_profile }}]
@@ -102,6 +103,7 @@ jobs:
           cat  ~/.aws/config
           echo DEBUG2
           aws configure list
+          env
 
       - name: Terraform Init
         id: init
