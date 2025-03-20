@@ -18,4 +18,4 @@ jobs:
         tf_workdir: <workdir> # path to the directory containing the terraform code
         tf_version: 1.8.2 # terraform version
         aws_profile: pbs-digi-preprod # aws profile name - if defined in terraform provider or backend
-        slack_channel_id: C07RJJPRVN2 # Slack channel id where the messages should be sent
+        slack_channel_id: <channel_id> # Slack channel id where the messages should be sent
