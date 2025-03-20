@@ -48,20 +48,12 @@ on:
         required: false
         default: ''
 
-
-#    outputs:
-#      image:
-#        description: "Docker image name"
-#        value: ${{ jobs.build.outputs.image }}
-
-
     secrets:
       SLACK_BOT_TOKEN:
         required: false
 
 env:
   APP_NAME: ${{ inputs.app_name  }}
-
 
 
 jobs:
@@ -72,7 +64,7 @@ jobs:
     defaults:
       run:
         working-directory: ./${{ inputs.tf_workdir }}
-#    outputs:
+
     steps:
       - name: Code Checkout
         uses: actions/checkout@main
@@ -157,7 +149,7 @@ jobs:
       - name: Prepare slack message
         id: slackmsg
         run: |
-          MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n ${{ steps.tf-plan-string.outputs.tfplan }}"
+          MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n ```${{ steps.tf-plan-string.outputs.tfplan }}```"
           MESSAGE=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
           echo "formated_msg<<EOL" >> $GITHUB_OUTPUT
           echo "$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT

@@ -195,3 +195,7 @@ jobs:
       needs: secrets-scanning
       ...
 ```
+
+### Check terraform drift
+#### The purpose of this template is to be imported in a cron workflow and periodically check for infrastructure changes that are not reflected in the terraform plan. It runs terraform plan and sends a slack message if there are changes.
+#### Usage: 
