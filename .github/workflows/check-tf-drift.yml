@@ -108,7 +108,6 @@ jobs:
           TFBACKEND: ${{ inputs.tf_backend_path }}
           TFVARS: ${{ inputs.tf_vars_path }}
         run: |
-          set +e
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
           export exitcode=0
