@@ -151,7 +151,7 @@ jobs:
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: Prepare slack message
-        if: steps.plan.outputs.exitcode  == '2'
+        if: steps.tf-plan-string.outputs.exitcode  == '0'
         id: slackmsg
         run: |
           MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`${{ steps.tf-plan-string.outputs.tfplan }}\`\`\`"
@@ -161,7 +161,7 @@ jobs:
           echo "EOL" >> $GITHUB_OUTPUT
 
       - name: briefslack
-        if: steps.plan.outputs.exitcode == '2'
+        if: steps.tf-plan-string.outputs.exitcode == '0'
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
