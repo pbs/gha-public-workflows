@@ -103,7 +103,6 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        shell: bash
         env:
           TFBACKEND: ${{ inputs.tf_backend_path }}
           TFVARS: ${{ inputs.tf_vars_path }}
@@ -111,10 +110,9 @@ jobs:
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
           export exitcode=0
-          bash -c "terraform plan -detailed-exitcode $backendarg $varsarg ${{ inputs.additional_plan_args}}  -out tfplan"; echo "FFF>>$?"
+          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan || export exitcode=$?
           
-          echo "exitcode=$?" >> $GITHUB_OUTPUT
-          echo "DEBUGGGG>>>>>$exitcode"
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
         
           if [ $exitcode -eq 1 ]; then
             echo Terraform Plan Failed!
@@ -127,6 +125,9 @@ jobs:
         id: tf-plan-string
         run: |
           TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+          changes=$( echo $TERRAFORM_PLAN | grep -c "No changes. Your infrastructure matches the configuration.")
+          echo "changes=$changes" >> $GITHUB_OUTPUT
+
           
           echo "tfplan<<EOL" >> $GITHUB_OUTPUT
           echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
@@ -149,7 +150,7 @@ jobs:
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: Prepare slack message
-        if: steps.tf-plan-string.outputs.exitcode  == '2'
+        if: steps.plan.outputs.exitcode  == '2'
         id: slackmsg
         run: |
           MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`${{ steps.tf-plan-string.outputs.tfplan }}\`\`\`"
@@ -159,7 +160,7 @@ jobs:
           echo "EOL" >> $GITHUB_OUTPUT
 
       - name: briefslack
-        if: steps.tf-plan-string.outputs.exitcode == '2'
+        if: steps.plan.outputs.exitcode == '2'
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
