@@ -1,0 +1,165 @@
+name: Template - Check fo terraform drift
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        type: string
+        description: 'Application name'
+        required: true
+      env:
+        type: string
+        description: 'Environment'
+        required: true
+      tf_workdir:
+        type: string
+        description: 'Directory where terraform should be run'
+        required: true
+      tf_version:
+        type: string
+        description: 'Terraform version to use'
+        required: true
+      aws_profile:
+        type: string
+        description: 'AWS profile name'
+        required: true
+      slack_channel_id:
+        type: string
+        description: 'Slack channel ID where to send the message'
+        required: true
+      tf_backend_path:
+        type: string
+        description: 'Terraform backend file path, relative to tf_workdir'
+        required: false
+        default: ''
+      tf_vars_path:
+        type: string
+        description: 'Terraform vars file path, relative to tf_workdir'
+        required: false
+        default: ''
+      additional_init_args:
+        type: string
+        description: '[Optional] Additional args to be added to tf init command'
+        required: false
+        default: ''
+      additional_plan_args:
+        type: string
+        description: '[Optional] Additional args to be added to tf plan command'
+        required: false
+        default: ''
+
+    secrets:
+      SLACK_BOT_TOKEN:
+        required: false
+
+env:
+  APP_NAME: ${{ inputs.app_name  }}
+
+
+jobs:
+  tf-drift:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+    name: build ${{ inputs.app_name }}
+    defaults:
+      run:
+        working-directory: ./${{ inputs.tf_workdir }}
+
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      # Assume AWS role
+      - name: Assume AWS role
+        uses: aws-actions/configure-aws-credentials@v4
+        id: aws-assume-role
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "${{ inputs.tf_version }}"
+
+      - name: Configure AWS profile
+        if: inputs.aws_profile != ''
+        run: |
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile ${{ inputs.aws_profile }}
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile ${{ inputs.aws_profile }}
+          aws configure set aws_session_token "$AWS_SESSION_TOKEN" --profile ${{ inputs.aws_profile }}
+          aws configure set region "$AWS_REGION" --profile ${{ inputs.aws_profile }}
+
+      - name: Terraform Init
+        id: init
+        env:
+          TFBACKEND: ${{ inputs.tf_backend_path }}
+        run: |
+          echo 
+          [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
+          terraform init $backendarg ${{ inputs.additional_init_args}}
+
+      - name: Terraform Plan
+        id: plan
+        env:
+          TFBACKEND: ${{ inputs.tf_backend_path }}
+          TFVARS: ${{ inputs.tf_vars_path }}
+        run: |
+          [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
+          [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
+          export exitcode=0
+          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan || export exitcode=$?
+          
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+        
+          if [ $exitcode -eq 1 ]; then
+            echo Terraform Plan Failed!
+            exit 1
+          else 
+            exit 0
+          fi
+
+      - name: Create String Output
+        id: tf-plan-string
+        run: |
+          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+          
+          echo "tfplan<<EOL" >> $GITHUB_OUTPUT
+          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
+          echo "EOL" >> $GITHUB_OUTPUT
+          
+          echo "summary<<EOL" >> $GITHUB_OUTPUT
+          echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo '```terraform' >> $GITHUB_OUTPUT
+          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
+          echo '```' >> $GITHUB_OUTPUT
+          echo "</details>" >> $GITHUB_OUTPUT
+          echo "EOL" >> $GITHUB_OUTPUT
+
+      - name: Publish Terraform Plan to Task Summary
+        env:
+          SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
+        run: |
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+      - name: Prepare slack message
+        id: slackmsg
+        run: |
+          MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`${{ steps.tf-plan-string.outputs.tfplan }}\`\`\`"
+          MESSAGE=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
+          echo "formated_msg<<EOL" >> $GITHUB_OUTPUT
+          echo "$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT
+          echo "EOL" >> $GITHUB_OUTPUT
+
+      - name: briefslack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ inputs.slack_channel_id }}
+            text: "${{ steps.slackmsg.outputs.formated_msg }}"

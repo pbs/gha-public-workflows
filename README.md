@@ -195,3 +195,20 @@ jobs:
       needs: secrets-scanning
       ...
 ```
+
+### Check terraform drift
+#### The purpose of this template is to be imported in a cron workflow and periodically check for infrastructure changes that are not reflected in the terraform plan. It runs terraform plan and sends a slack message if there are changes.
+#### Usage: Call the template from your project workflow like in the [example](.github/workflows/examples/check-terraform-drift-example.yml)
+
+| name                   | description                                                      | type     | required | default |
+|------------------------|------------------------------------------------------------------|----------|----------|---------|
+| `app_name`             | <p>Application name</p>                                          | `string` | `true`   | `""`    |
+| `env`                  | <p>Command name</p>                                              | `string` | `true`   | `""`    |
+| `tf_workdir`           | <p>Directory where terraform should be run</p>                   | `string` | `true`   | `""`    |
+| `tf_version`           | <p>Terraform version to use</p>                                  | `string` | `true`   | `""`    |
+| `aws_profile`          | <p>AWS profile name</p>                                          | `string` | `true`   | `""`    |
+| `slack_channel_id`     | <p>Slack channel ID where to send the message</p>                | `string` | `true`   | `""`    |
+| `tf_backend_path`      | <p>Terraform backend file path, relative to tf_workdir</p>       | `string` | `false`  | `""`    |
+| `tf_vars_path`         | <p>Terraform vars file path, relative to tf_workdir</p>          | `string` | `false`  | `""`    |
+| `additional_init_args` | <p>[Optional] Additional args to be added to tf init command</p> | `string` | `false`  | `""`    |
+| `additional_plan_args` | <p>[Optional] Additional args to be added to tf plan command</p> | `string` | `false`  | `""`    |
