@@ -110,9 +110,9 @@ jobs:
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
           terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan 
-          export tfexitcode=$?
+          export exitcode=$?
           
-          echo "tfexitcode=$tfexitcode" >> $GITHUB_OUTPUT
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
         
 
       - name: Create String Output
@@ -141,7 +141,7 @@ jobs:
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: Prepare slack message
-        if: steps.tf-plan-string.outputs.tfexitcode  == 2
+        if: steps.tf-plan-string.outputs.exitcode  == 2
         id: slackmsg
         run: |
           MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`${{ steps.tf-plan-string.outputs.tfplan }}\`\`\`"
@@ -151,7 +151,7 @@ jobs:
           echo "EOL" >> $GITHUB_OUTPUT
 
       - name: briefslack
-        if: steps.tf-plan-string.outputs.tfexitcode == 2
+        if: steps.tf-plan-string.outputs.exitcode == 2
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
