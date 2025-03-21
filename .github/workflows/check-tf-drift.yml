@@ -117,6 +117,7 @@ jobs:
           if [ $exitcode -eq 1 ]; then
             echo Terraform Plan Failed!
             exit 1
+          fi
 
       - name: Create String Output
         id: tf-plan-string
