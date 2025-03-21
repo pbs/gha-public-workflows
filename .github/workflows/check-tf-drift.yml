@@ -125,8 +125,6 @@ jobs:
         id: tf-plan-string
         run: |
           TERRAFORM_PLAN=$(terraform show -no-color tfplan)
-          changes=$( echo $TERRAFORM_PLAN | grep -c "No changes. Your infrastructure matches the configuration.")
-          echo "changes=$changes" >> $GITHUB_OUTPUT
 
           
           echo "tfplan<<EOL" >> $GITHUB_OUTPUT
