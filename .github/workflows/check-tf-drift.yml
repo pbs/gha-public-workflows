@@ -112,7 +112,7 @@ jobs:
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
           export exitcode=0
-          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan || echo $?
+          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan || echo "FFF>>$?"
           
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
           echo "DEBUGGGG>>>>>$exitcode"
