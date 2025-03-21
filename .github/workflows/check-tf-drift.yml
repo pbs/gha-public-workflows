@@ -103,6 +103,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
+        shell: bash
         env:
           TFBACKEND: ${{ inputs.tf_backend_path }}
           TFVARS: ${{ inputs.tf_vars_path }}
