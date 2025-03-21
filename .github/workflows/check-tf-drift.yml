@@ -110,7 +110,6 @@ jobs:
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
           terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan 
-          echo "exitcode=$?" >> $GITHUB_OUTPUT
         
 
       - name: Create String Output
