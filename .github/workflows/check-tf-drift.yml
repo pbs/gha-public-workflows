@@ -111,12 +111,18 @@ jobs:
           set +e
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
-          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan 
-          exitcode="$?"
-          echo "DEBUG>>>$exitcode"
+          export exitcode=0
+          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan || export exitcode=$?
+          
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
-          exit "$exitcode"
+          echo "DEBUGGGG>>>>>$exitcode"
         
+          if [ $exitcode -eq 1 ]; then
+            echo Terraform Plan Failed!
+            exit 1
+          else 
+            exit 0
+          fi
 
       - name: Create String Output
         id: tf-plan-string
