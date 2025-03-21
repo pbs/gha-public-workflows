@@ -124,7 +124,11 @@ jobs:
       - name: Create String Output
         id: tf-plan-string
         run: |
+          set +e
           TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+          no_drift=$( echo $TERRAFORM_PLAN | grep -c "No changes. Your infrastructure matches the configuration.")
+          echo "no_drift=$no_drift" >> $GITHUB_OUTPUT
+
           
           echo "tfplan<<EOL" >> $GITHUB_OUTPUT
           echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
@@ -147,6 +151,7 @@ jobs:
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: Prepare slack message
+        if: steps.tf-plan-string.outputs.no_drift  == '0'
         id: slackmsg
         run: |
           MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`${{ steps.tf-plan-string.outputs.tfplan }}\`\`\`"
@@ -156,6 +161,7 @@ jobs:
           echo "EOL" >> $GITHUB_OUTPUT
 
       - name: briefslack
+        if: steps.tf-plan-string.outputs.no_drift == '0'
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
