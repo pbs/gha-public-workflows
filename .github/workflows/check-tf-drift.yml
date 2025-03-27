@@ -160,7 +160,7 @@ jobs:
           echo "$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT
           echo "EOL" >> $GITHUB_OUTPUT
 
-      - name: Prepare slack message
+      - name: Parse slack channels
         if: steps.tf-plan-string.outputs.no_drift  == '0'
         id: parse-slack-channels
         run: |
