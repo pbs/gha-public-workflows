@@ -167,7 +167,7 @@ jobs:
           ff1=`echo ${{ inputs.slack_channel_id }} | cut -d "," -f1`
           ff2=`echo ${{ inputs.slack_channel_id }} | cut -d "," -f2`
           echo "channel1=$ff1" >> $GITHUB_OUTPUT
-          [[ "$ff1" != "$ff2" ]] && echo "channel2=$ff2" >> $GITHUB_OUTPUT || echo "channel2=''" >> $GITHUB_OUTPUT
+          [[ "$ff1" != "$ff2" ]] && echo "channel2=$ff2" >> $GITHUB_OUTPUT || echo "channel2=" >> $GITHUB_OUTPUT
           
 
       - name: slack-channel1
