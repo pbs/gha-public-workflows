@@ -153,7 +153,7 @@ jobs:
         if: steps.tf-plan-string.outputs.no_drift  == '0'
         id: slackmsg
         run: |
-          plan_text=$(sed 's/"/\\"/g' <<< ${{ steps.tf-plan-string.outputs.tfplan }} )  
+          plan_text=$(sed 's/"/\\"/g' <<< "${{ steps.tf-plan-string.outputs.tfplan }}" )  
           MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`${{ steps.tf-plan-string.outputs.tfplan }}\`\`\`"
           MESSAGE=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
           echo "formated_msg<<EOL" >> $GITHUB_OUTPUT
