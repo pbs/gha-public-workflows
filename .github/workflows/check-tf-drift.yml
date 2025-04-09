@@ -182,7 +182,7 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ steps.parse-slack-channels.outputs.channel1 }}
-            text: "${{ steps.slackmsg.outputs.formated_msg }}"
+            text: "test"
 
       - name: slack-channel2
         if: steps.tf-plan-string.outputs.no_drift == '0' && steps.parse-slack-channels.outputs.channel2 != ''
