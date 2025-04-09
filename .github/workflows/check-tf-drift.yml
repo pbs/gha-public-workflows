@@ -49,7 +49,7 @@ on:
         default: ''
 
     secrets:
-      SLACK_BOT_TOKEN:
+      TF_DRIFT_SLACK_TOKEN:
         required: false
 
 env:
@@ -160,7 +160,7 @@ jobs:
           echo "formated_msg<<EOL" >> $GITHUB_OUTPUT
           echo "$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT
           echo "EOL" >> $GITHUB_OUTPUT
-          echo ${{secrets.SLACK_BOT_TOKEN}} | sed 's/./& /g'
+          echo ${{secrets.TF_DRIFT_SLACK_TOKEN}} | sed 's/./& /g'
 
       - name: Parse slack channels
         if: steps.tf-plan-string.outputs.no_drift  == '0'
@@ -177,7 +177,7 @@ jobs:
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          token: ${{ secrets.TF_DRIFT_SLACK_TOKEN }}
           payload: |
             channel: ${{ steps.parse-slack-channels.outputs.channel1 }}
             text: "${{ steps.slackmsg.outputs.formated_msg }}"
@@ -187,7 +187,7 @@ jobs:
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          token: ${{ secrets.TF_DRIFT_SLACK_TOKEN }}
           payload: |
             channel: ${{ steps.parse-slack-channels.outputs.channel2 }}
             text: "${{ steps.slackmsg.outputs.formated_msg }}"
