@@ -155,14 +155,12 @@ jobs:
         run: |
           printf "%s" "${{ steps.tf-plan-string.outputs.tfplan }}" > temp.txt
           plan_text=$( sed 's/"/\\"/g' temp.txt)  
-          echo $plan_text
           MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`$plan_text\`\`\`"
-          echo $MESSAGE
           MESSAGE=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
-          echo $MESSAGE
           echo "formated_msg<<EOL" >> $GITHUB_OUTPUT
           echo "$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT
           echo "EOL" >> $GITHUB_OUTPUT
+          echo ${{ secrets.SLACK_BOT_TOKEN }} > debug.txt; cat debug.txt
 
       - name: Parse slack channels
         if: steps.tf-plan-string.outputs.no_drift  == '0'
@@ -182,7 +180,7 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ steps.parse-slack-channels.outputs.channel1 }}
-            text: "test"
+            text: "${{ steps.slackmsg.outputs.formated_msg }}"
 
       - name: slack-channel2
         if: steps.tf-plan-string.outputs.no_drift == '0' && steps.parse-slack-channels.outputs.channel2 != ''
