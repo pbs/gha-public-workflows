@@ -23,10 +23,6 @@ on:
         type: string
         description: 'AWS profile name'
         required: true
-      slack_channel_id:
-        type: string
-        description: 'Slack channel ID where to send the message'
-        required: true
       tf_backend_path:
         type: string
         description: 'Terraform backend file path, relative to tf_workdir'
@@ -49,8 +45,8 @@ on:
         default: ''
 
     secrets:
-      SLACK_BOT_TOKEN:
-        required: false
+      TF_DRIFT_SLACK_TOKEN:
+        required: true
 
 env:
   APP_NAME: ${{ inputs.app_name  }}
@@ -107,10 +103,9 @@ jobs:
           TFBACKEND: ${{ inputs.tf_backend_path }}
           TFVARS: ${{ inputs.tf_vars_path }}
         run: |
-          [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
           [ -z "$TFVARS" ] && varsarg="" || varsarg="-var-file=$TFVARS"
           export exitcode=0
-          terraform plan $backendarg $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan || export exitcode=$?
+          terraform plan $varsarg ${{ inputs.additional_plan_args}} -detailed-exitcode -out tfplan || export exitcode=$?
           
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
         
@@ -154,7 +149,11 @@ jobs:
         if: steps.tf-plan-string.outputs.no_drift  == '0'
         id: slackmsg
         run: |
-          MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`${{ steps.tf-plan-string.outputs.tfplan }}\`\`\`"
+          printf "%s" "${{ steps.tf-plan-string.outputs.tfplan }}" > temp.txt
+          lines=$(grep -cE "\n" temp.txt)
+          [[ $lines -gt 30 ]] && cat temp.txt | grep -E "(^ +# [^\(]| resource )" > temp_new.txt || mv temp.txt temp_new.txt
+          plan_text=$( sed 's/"/\\"/g' temp_new.txt)
+          MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`$plan_text\`\`\`"
           MESSAGE=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
           echo "formated_msg<<EOL" >> $GITHUB_OUTPUT
           echo "$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT
@@ -164,8 +163,8 @@ jobs:
         if: steps.tf-plan-string.outputs.no_drift  == '0'
         id: parse-slack-channels
         run: |
-          ff1=`echo ${{ inputs.slack_channel_id }} | cut -d "," -f1`
-          ff2=`echo ${{ inputs.slack_channel_id }} | cut -d "," -f2`
+          ff1=`echo ${{ vars.TF_DRIFT_SLACK_CHANNELS }} | cut -d "," -f1`
+          ff2=`echo ${{ vars.TF_DRIFT_SLACK_CHANNELS }} | cut -d "," -f2`
           echo "channel1=$ff1" >> $GITHUB_OUTPUT
           [[ "$ff1" != "$ff2" ]] && echo "channel2=$ff2" >> $GITHUB_OUTPUT || echo "channel2=" >> $GITHUB_OUTPUT
           
@@ -175,7 +174,7 @@ jobs:
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          token: ${{ secrets.TF_DRIFT_SLACK_TOKEN }}
           payload: |
             channel: ${{ steps.parse-slack-channels.outputs.channel1 }}
             text: "${{ steps.slackmsg.outputs.formated_msg }}"
@@ -185,7 +184,7 @@ jobs:
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          token: ${{ secrets.TF_DRIFT_SLACK_TOKEN }}
           payload: |
             channel: ${{ steps.parse-slack-channels.outputs.channel2 }}
             text: "${{ steps.slackmsg.outputs.formated_msg }}"
