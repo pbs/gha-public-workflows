@@ -154,7 +154,7 @@ jobs:
         id: slackmsg
         run: |
           plan_text=$(sed 's/"/\\"/g' <<< "${{ steps.tf-plan-string.outputs.tfplan }}" )  
-          MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`${{ steps.tf-plan-string.outputs.tfplan }}\`\`\`"
+          MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`$plan_text\`\`\`"
           MESSAGE=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
           echo "formated_msg<<EOL" >> $GITHUB_OUTPUT
           echo "$MESSAGE <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK to GHA job>" >> $GITHUB_OUTPUT
