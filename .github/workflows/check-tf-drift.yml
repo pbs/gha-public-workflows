@@ -155,6 +155,9 @@ jobs:
         run: |
           printf "%s" "${{ steps.tf-plan-string.outputs.tfplan }}" > temp.txt
           plan_text=$( sed 's/"/\\"/g' temp.txt)  
+          cat temp.txt
+          lines=$(grep -cE "\n" temp.txt)
+          [[ $lines -gt 30 ]] && grep -E "(^ +# [^\(]| resource )"  temp.txt > temp.txt
           MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`$plan_text\`\`\`"
           MESSAGE=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
           echo "formated_msg<<EOL" >> $GITHUB_OUTPUT
