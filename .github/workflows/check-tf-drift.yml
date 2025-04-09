@@ -156,7 +156,7 @@ jobs:
           printf "%s" "${{ steps.tf-plan-string.outputs.tfplan }}" > temp.txt
           plan_text=$( sed 's/"/\\"/g' temp.txt)  
           echo $plan_text
-          MESSAGE="*${{ inputs.app_name }} terraform drift\!\!\!* \n \`\`\`$plan_text\`\`\`"
+          MESSAGE="*${{ inputs.app_name }} terraform drift!!!* \n \`\`\`$plan_text\`\`\`"
           echo $MESSAGE
           MESSAGE=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
           echo $MESSAGE
