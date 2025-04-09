@@ -46,9 +46,7 @@ on:
 
     secrets:
       TF_DRIFT_SLACK_TOKEN:
-        required: false
-      TF_DRIFT_SLACK_CHANNELS:
-        required: false
+        required: true
 
 env:
   APP_NAME: ${{ inputs.app_name  }}
@@ -166,8 +164,8 @@ jobs:
         if: steps.tf-plan-string.outputs.no_drift  == '0'
         id: parse-slack-channels
         run: |
-          ff1=`echo ${{ secrets.TF_DRIFT_SLACK_CHANNELS }} | cut -d "," -f1`
-          ff2=`echo ${{ secrets.TF_DRIFT_SLACK_CHANNELS }} | cut -d "," -f2`
+          ff1=`echo ${{ vars.TF_DRIFT_SLACK_CHANNELS }} | cut -d "," -f1`
+          ff2=`echo ${{ vars.TF_DRIFT_SLACK_CHANNELS }} | cut -d "," -f2`
           echo "channel1=$ff1" >> $GITHUB_OUTPUT
           [[ "$ff1" != "$ff2" ]] && echo "channel2=$ff2" >> $GITHUB_OUTPUT || echo "channel2=" >> $GITHUB_OUTPUT
           
