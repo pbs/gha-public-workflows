@@ -46,9 +46,9 @@ on:
 
     secrets:
       TF_DRIFT_SLACK_TOKEN:
-        required: true
+        required: false
       TF_DRIFT_SLACK_CHANNELS:
-        required: true
+        required: false
 
 env:
   APP_NAME: ${{ inputs.app_name  }}
