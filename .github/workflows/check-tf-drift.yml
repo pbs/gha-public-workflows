@@ -95,6 +95,9 @@ jobs:
         run: |
           echo 
           [ -z "$TFBACKEND" ] && backendarg="" || backendarg="-backend-config=$TFBACKEND"
+          if [ -n "$TFBACKEND" ] && grep -q '^role_arn' "$TFBACKEND"; then
+            sed -i.bak '/^role_arn/d' "$TFBACKEND"
+          fi
           terraform init $backendarg ${{ inputs.additional_init_args}}
 
       - name: Terraform Plan
