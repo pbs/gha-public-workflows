@@ -250,7 +250,7 @@ jobs:
           builder: builder
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
           # platform: linux/amd64
-          provenance: false
+          # provenance: false
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
