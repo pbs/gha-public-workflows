@@ -235,9 +235,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Create and use a builder instance
-        run: |
-          docker buildx create --name builder --driver docker --use
+      # - name: Create and use a builder instance
+      #   run: |
+      #     docker buildx create --name builder --driver docker --use
 
       - name: Docker Build Image
         uses: docker/build-push-action@v6
@@ -247,7 +247,7 @@ jobs:
           file: ${{ inputs.dockerfile }}
           load: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
-          builder: builder
+          builder: default
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
           platform: linux/amd64
           # provenance: false
