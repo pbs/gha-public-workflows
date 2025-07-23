@@ -303,34 +303,37 @@ jobs:
         if: inputs.immutable == true
         run: aws ecr batch-delete-image --registry-id ${{ env.REGISTRY_ID }} --repository-name ${{ env.APP_NAME }} --image-ids imageTag=${{ inputs.image_build_tag }} imageTag=${{ env.CUSTOM_TAG }} imageTag=cache-${{ inputs.image_build_tag }}
 
-      - name: Docker tag and push image 
-        run: |
-            docker tag ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }} ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
-            if [[ -n "${{ env.CUSTOM_TAG }}" ]]; then
-              docker tag ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }} ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
-            fi
-            docker tag ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }} ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
-            docker rmi ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
-            docker image push --all-tags ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}
-      # - name: Docker Push Image
-      #   uses: docker/build-push-action@v6
-      #   id: push-image
-      #   with:
-      #     context: ${{ inputs.context }}
-      #     file: ${{ inputs.dockerfile }}
-      #     push: true
-      #     tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
-      #     cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
+      # - name: Docker tag and push image 
+      #   run: |
+      #       docker tag ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }} ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
+      #       if [[ -n "${{ env.CUSTOM_TAG }}" ]]; then
+      #         docker tag ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }} ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
+      #       fi
+      #       docker tag ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }} ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
+      #       docker rmi ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
+      #       docker image push --all-tags ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}
 
-      # - name: Docker Push Image Custom Tag
-      #   uses: docker/build-push-action@v6
-      #   if: env.CUSTOM_TAG != ''
-      #   id: push-image-custom-tag
-      #   with:
-      #     context: ${{ inputs.context }}
-      #     file: ${{ inputs.dockerfile }}
-      #     push: true
-      #     tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
+      - name: Docker Push Image
+        uses: docker/build-push-action@v6
+        id: push-image
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
+          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
+
+      - name: Docker Push Image Custom Tag
+        uses: docker/build-push-action@v6
+        if: env.CUSTOM_TAG != ''
+        id: push-image-custom-tag
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
@@ -447,4 +450,4 @@ jobs:
           name: slack-artifact
           path: slack
           overwrite: true
-          
+
