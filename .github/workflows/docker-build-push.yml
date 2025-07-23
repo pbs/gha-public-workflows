@@ -245,12 +245,12 @@ jobs:
         with:
           context: ${{ inputs.context }}
           file: ${{ inputs.dockerfile }}
-          # load: true
+          load: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
           builder: builder
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
-          platform: linux/amd64
-          # provenance: false
+          # platform: linux/amd64
+          provenance: false
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
