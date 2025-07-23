@@ -245,11 +245,12 @@ jobs:
         with:
           context: ${{ inputs.context }}
           file: ${{ inputs.dockerfile }}
-          load: true
+          # load: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
           builder: builder
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
-          provenance: false
+          platform: linux/amd64
+          # provenance: false
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
@@ -325,15 +326,15 @@ jobs:
             ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
           cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
 
-      - name: Docker Push Image Custom Tag
-        uses: docker/build-push-action@v6
-        if: env.CUSTOM_TAG != ''
-        id: push-image-custom-tag
-        with:
-          context: ${{ inputs.context }}
-          file: ${{ inputs.dockerfile }}
-          push: true
-          tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
+      # - name: Docker Push Image Custom Tag
+      #   uses: docker/build-push-action@v6
+      #   if: env.CUSTOM_TAG != ''
+      #   id: push-image-custom-tag
+      #   with:
+      #     context: ${{ inputs.context }}
+      #     file: ${{ inputs.dockerfile }}
+      #     push: true
+      #     tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
