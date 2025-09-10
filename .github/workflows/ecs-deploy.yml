@@ -149,7 +149,7 @@ jobs:
       # Deploy ECS Service
       - name: Deploy ECS Service ${{ env.DEPLOY_NAME }}
         id: deploy
-        uses: silinternational/ecs-deploy@master
+        uses: sil-org/ecs-deploy@master
         with:
           cluster_cmd: "--cluster"
           cluster: ${{ inputs.ecs_cluster }}
