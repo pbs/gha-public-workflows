@@ -43,6 +43,7 @@ runs:
   steps:
     - id: pre
       shell: bash
+      if: inputs.reply != ''
       env:
         status_msg: ${{ inputs.status_msg }}
         status_file: ${{ inputs.status_file }}
@@ -137,7 +138,7 @@ runs:
         update-ts: ${{ inputs.update }}
         payload: |
           {
-            "text": "[${{ inputs.title }}",
+            "text": "${{ inputs.title }}",
             "thread_ts": "${{ inputs.reply }}"
           }
       env:
