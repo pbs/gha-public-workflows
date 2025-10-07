@@ -135,7 +135,6 @@ runs:
       if: inputs.reply != ''
       with:
         channel-id: ${{ inputs.channel_id }}
-        update-ts: ${{ inputs.update }}
         payload: |
           {
             "text": "${{ inputs.title }}",
