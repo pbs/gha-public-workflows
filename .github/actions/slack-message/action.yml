@@ -43,7 +43,7 @@ runs:
   steps:
     - id: pre
       shell: bash
-      if: inputs.reply != ''
+      if: inputs.reply == ''
       env:
         status_msg: ${{ inputs.status_msg }}
         status_file: ${{ inputs.status_file }}
