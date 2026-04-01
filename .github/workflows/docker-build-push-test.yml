@@ -26,7 +26,7 @@ jobs:
           echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
         test_command: |
           pwd
-          docker run --rm test-templates:test cat /build_args.txt
+          docker run --rm ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', vars.AWS_ACCOUNT, vars.AWS_REGION) }}/test-templates:test cat /build_args.txt
         after_command: |
           pwd
         # sbom: true
