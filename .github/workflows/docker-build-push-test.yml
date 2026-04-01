@@ -17,6 +17,9 @@ jobs:
         image_name: test-templates
         image_build_tag: latest
         image_test_tag: test
+        build_args: |
+          TESTING_BUILD_ARG1=testVALUE
+          TESTING_BUILD_ARG2=${{ vars.SLACK_CHANNEL_ID }}
         before_command: |
           pwd
           CUSTOM_TAG="latest-custom"
@@ -25,6 +28,7 @@ jobs:
           pwd
         after_command: |
           pwd
+          docker run -it --rm test-image sh -c "cat /build_args.txt"
         # sbom: true
         # parser: true
         # sonarqube: true
