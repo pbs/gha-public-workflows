@@ -8,27 +8,40 @@ permissions:
   contents: read
 
 jobs:
-    build:
-      uses: ./.github/workflows/docker-build-push.yml
-      secrets: inherit
-      with:
-        env: test
-        immutable: false
-        image_name: test-templates
-        image_build_tag: latest
-        image_test_tag: test
-        build_args: |
-          TESTING_BUILD_ARG1=testVALUE
-          TESTING_BUILD_ARG2=${{ vars.SLACK_CHANNEL_ID }}
-        before_command: |
-          pwd
-          CUSTOM_TAG="latest-custom"
-          echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
-        test_command: |
-          pwd
-          docker run --rm ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', vars.AWS_ACCOUNT, vars.AWS_REGION) }}/test-templates:test cat /build_args.txt
-        after_command: |
-          pwd
-        # sbom: true
-        # parser: true
-        # sonarqube: true
+  setup:
+    runs-on: ubuntu-latest
+    environment: test
+    outputs:
+      slack_channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+      aws_account: ${{ vars.AWS_ACCOUNT }}
+      aws_region: ${{ vars.AWS_REGION }}
+    steps:
+      - name: Expose environment variables
+        run: echo "Capturing environment variables"
+
+  build:
+    needs: setup
+    uses: ./.github/workflows/docker-build-push.yml
+    secrets: inherit
+    with:
+      env: test
+      immutable: false
+      image_name: test-templates
+      image_build_tag: latest
+      image_test_tag: test
+      build_args: |
+        TESTING_BUILD_ARG1=testVALUE
+        TESTING_BUILD_ARG2=${{ needs.setup.outputs.slack_channel_id }}
+      before_command: |
+        pwd
+        CUSTOM_TAG="latest-custom"
+        echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
+      test_command: |
+        pwd
+        docker run --rm ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', needs.setup.outputs.aws_account, needs.setup.outputs.aws_region) }}/test-templates:test cat /build_args.txt
+      after_command: |
+        pwd
+      # sbom: true
+      # parser: true
+      # sonarqube: true
+
