@@ -7,6 +7,9 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  SLACK_CHANNEL_ID_VAR: ${{ vars.SLACK_CHANNEL_ID }}
+
 jobs:
     build:
       uses: ./.github/workflows/docker-build-push.yml
@@ -19,14 +22,14 @@ jobs:
         image_test_tag: test
         build_args: |
           TESTING_BUILD_ARG1=testVALUE
-          TESTING_BUILD_ARG2=${{ vars.SLACK_CHANNEL_ID }}
+          TESTING_BUILD_ARG2=${{ env.SLACK_CHANNEL_ID_VAR }}
         before_command: |
           pwd
           CUSTOM_TAG="latest-custom"
           echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
         test_command: |
           pwd
-          docker run -it --rm test-templates "cat" "/build_args.txt"
+          docker run --rm test-templates:test cat /build_args.txt
         after_command: |
           pwd
         # sbom: true
