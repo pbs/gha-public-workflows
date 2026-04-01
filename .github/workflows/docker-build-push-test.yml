@@ -26,9 +26,9 @@ jobs:
           echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
         test_command: |
           pwd
+          docker run -it --rm test-templates "cat" "/build_args.txt"
         after_command: |
           pwd
-          docker run -it --rm test-image sh -c "cat /build_args.txt"
         # sbom: true
         # parser: true
         # sonarqube: true
