@@ -126,6 +126,8 @@ env:
 
   # Update the CUSTOM_TAG with 'echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"' in any step before the push
   CUSTOM_TAG: ''
+  # Add any dynamic build args with 'echo "DYNAMIC_BUILD_ARGS=..." >> "$GITHUB_ENV"' in any step before the build. Useful when you need to execute shell commands to get the value of the build args.
+  DYNAMIC_BUILD_ARGS: ''
 
 jobs:
   build:
@@ -254,7 +256,9 @@ jobs:
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
           builder: builder
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
-          build-args: ${{ inputs.build_args }}
+          build-args: |
+            ${{ inputs.build_args }}
+            ${{ env.DYNAMIC_BUILD_ARGS }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
@@ -317,7 +321,9 @@ jobs:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
           cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
-          build-args: ${{ inputs.build_args }}
+          build-args: |
+            ${{ inputs.build_args }}
+            ${{ env.DYNAMIC_BUILD_ARGS }}
 
       - name: Docker Push Image Custom Tag
         uses: docker/build-push-action@v6
@@ -328,7 +334,9 @@ jobs:
           file: ${{ inputs.dockerfile }}
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
-          build-args: ${{ inputs.build_args }}
+          build-args: |
+            ${{ inputs.build_args }}
+            ${{ env.DYNAMIC_BUILD_ARGS }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
