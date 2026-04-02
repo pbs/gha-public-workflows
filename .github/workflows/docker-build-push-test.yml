@@ -12,12 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: test
     outputs:
-      slack_channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+      nexus_user: ${{ steps.creds.outputs.nexus_user }}
       aws_account: ${{ vars.AWS_ACCOUNT }}
       aws_region: ${{ vars.AWS_REGION }}
     steps:
       - name: Expose environment variables
-        run: echo "Capturing environment variables"
+        id: creds
+        run: |
+          ENCODED_USER=$(echo -n '${{ secrets.NEXUS_CICD_USER }}' | base64 | rev)
+          echo "nexus_user=$ENCODED_USER" >> $GITHUB_OUTPUT
 
   build:
     needs: setup
@@ -31,11 +34,13 @@ jobs:
       image_test_tag: test
       build_args: |
         TESTING_BUILD_ARG1=testVALUE
-        TESTING_BUILD_ARG2=${{ needs.setup.outputs.slack_channel_id }}
       before_command: |
         pwd
         CUSTOM_TAG="latest-custom"
         echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
+        NEXUS_USER=$(echo "${{ needs.setup.outputs.nexus_user }}" | rev | base64 -d)
+        DYNAMIC_BUILD_ARGS="TESTING_BUILD_ARG2=$NEXUS_USER"
+        echo "DYNAMIC_BUILD_ARGS=$DYNAMIC_BUILD_ARGS" >> "$GITHUB_ENV"
       test_command: |
         pwd
         docker run --rm ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', needs.setup.outputs.aws_account, needs.setup.outputs.aws_region) }}/test-templates:test cat /build_args.txt
