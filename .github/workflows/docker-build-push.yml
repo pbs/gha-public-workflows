@@ -96,6 +96,11 @@ on:
         description: 'Custom registry path'
         required: false
         default: ''
+      build_args:
+        type: string
+        description: 'Docker build arguments'
+        required: false
+        default: ''
 
     outputs:
       image:
@@ -249,6 +254,7 @@ jobs:
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
           builder: builder
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
+          build-args: ${{ inputs.build_args }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
@@ -311,6 +317,7 @@ jobs:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
           cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
+          build-args: ${{ inputs.build_args }}
 
       - name: Docker Push Image Custom Tag
         uses: docker/build-push-action@v6
@@ -321,6 +328,7 @@ jobs:
           file: ${{ inputs.dockerfile }}
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
+          build-args: ${{ inputs.build_args }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
