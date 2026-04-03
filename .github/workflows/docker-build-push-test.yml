@@ -39,8 +39,10 @@ jobs:
         CUSTOM_TAG="latest-custom"
         echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
         NEXUS_USER=$(echo "${{ needs.setup.outputs.nexus_user }}" | rev | base64 -d)
-        DYNAMIC_BUILD_ARGS="TESTING_BUILD_ARG1=testVALUE\nTESTING_BUILD_ARG2=$NEXUS_USER"
-        echo "DYNAMIC_BUILD_ARGS=$DYNAMIC_BUILD_ARGS" >> "$GITHUB_ENV"
+        echo "DYNAMIC_BUILD_ARGS<<EOF" >> "$GITHUB_ENV"
+        echo "TESTING_BUILD_ARG1=testVALUE" >> "$GITHUB_ENV"
+        echo "TESTING_BUILD_ARG2=$NEXUS_USER" >> "$GITHUB_ENV"
+        echo "EOF" >> "$GITHUB_ENV"
       test_command: |
         pwd
         docker run --rm ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', needs.setup.outputs.aws_account, needs.setup.outputs.aws_region) }}/test-templates:test cat /build_args.txt
