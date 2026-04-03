@@ -32,14 +32,14 @@ jobs:
       image_name: test-templates
       image_build_tag: latest
       image_test_tag: test
-      build_args: |
-        TESTING_BUILD_ARG1=testVALUE
+#      build_args: |
+#        TESTING_BUILD_ARG1=testVALUE
       before_command: |
         pwd
         CUSTOM_TAG="latest-custom"
         echo "CUSTOM_TAG=$CUSTOM_TAG" >> "$GITHUB_ENV"
         NEXUS_USER=$(echo "${{ needs.setup.outputs.nexus_user }}" | rev | base64 -d)
-        DYNAMIC_BUILD_ARGS="TESTING_BUILD_ARG2=$NEXUS_USER"
+        DYNAMIC_BUILD_ARGS="TESTING_BUILD_ARG1=testVALUE TESTING_BUILD_ARG2=$NEXUS_USER"
         echo "DYNAMIC_BUILD_ARGS=$DYNAMIC_BUILD_ARGS" >> "$GITHUB_ENV"
       test_command: |
         pwd
