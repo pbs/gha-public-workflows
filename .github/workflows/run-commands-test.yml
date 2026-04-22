@@ -57,4 +57,47 @@ jobs:
             exit 1
           fi
 
+      - name: Run tests (Python 3.10)
+        run: |
+          python3 - <<'EOF'
+          import urllib.request
+          import urllib.error
+          import socket
+          import sys
+
+          url_list = [
+              "https://media.console.pbs.org/djadmin/",
+              "https://nexus.pbs.org/nexus/",
+              "https://google.com/",
+              "https://www.pbs.org/",
+              "https://www.youtube.com/",
+              "https://www.pbs.org/shows/",
+              "https://www.pbs.org/newshour/",
+          ]
+
+          failed = False
+          for url in url_list:
+              print(f"Testing {url} ... ", end="", flush=True)
+              try:
+                  with urllib.request.urlopen(url, timeout=10) as response:
+                      code = response.status
+                      if 200 <= code < 400:
+                          print(f"HTTP {code} OK")
+                      else:
+                          print(f"HTTP {code} (unexpected)")
+              except urllib.error.HTTPError as e:
+                  print(f"HTTP {e.code} (unexpected)")
+                  failed = True
+              except socket.timeout:
+                  print("TIMEOUT")
+                  failed = True
+              except Exception as e:
+                  print(f"FAILED ({e})")
+                  failed = True
+
+          if failed:
+              print("One or more URLs failed connectivity check.")
+              sys.exit(1)
+          EOF
+
 
