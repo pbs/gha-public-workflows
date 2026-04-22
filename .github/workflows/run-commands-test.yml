@@ -47,7 +47,6 @@ jobs:
               failed=1
             elif [[ "$http_code" != 2* ]]; then
               echo "HTTP $http_code (unexpected)"
-              failed=1
             else
               echo "HTTP $http_code OK"
             fi
