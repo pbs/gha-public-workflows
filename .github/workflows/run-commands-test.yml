@@ -22,41 +22,6 @@ jobs:
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
     steps:
-      - name: Run tests
-        run: |
-          url_list=(
-            "https://media.console.pbs.org/djadmin/"
-            "https://nexus.pbs.org/nexus/"
-            "https://google.com/"
-            "https://www.pbs.org/"
-            "https://www.youtube.com/"
-            "https://www.pbs.org/shows/"
-            "https://www.pbs.org/newshour/"
-          )
-
-          failed=0
-          for url in "${url_list[@]}"; do
-            echo -n "Testing $url ... "
-            http_code=$(curl --silent --output /dev/null --write-out "%{http_code}" --max-time 10 --connect-timeout 5 "$url")
-            exit_code=$?
-            if [ $exit_code -eq 28 ]; then
-              echo "TIMEOUT"
-              failed=1
-            elif [ $exit_code -ne 0 ]; then
-              echo "FAILED (curl exit code: $exit_code)"
-              failed=1
-            elif [[ "$http_code" != 2* ]]; then
-              echo "HTTP $http_code (unexpected)"
-            else
-              echo "HTTP $http_code OK"
-            fi
-          done
-
-          if [ $failed -ne 0 ]; then
-            echo "One or more URLs failed connectivity check."
-            exit 1
-          fi
-
       - name: Run tests (Python 3.10)
         run: |
           python3 - <<'EOF'
@@ -100,4 +65,37 @@ jobs:
               sys.exit(1)
           EOF
 
+      - name: Run tests
+        run: |
+          url_list=(
+            "https://media.console.pbs.org/djadmin/"
+            "https://nexus.pbs.org/nexus/"
+            "https://google.com/"
+            "https://www.pbs.org/"
+            "https://www.youtube.com/"
+            "https://www.pbs.org/shows/"
+            "https://www.pbs.org/newshour/"
+          )
 
+          failed=0
+          for url in "${url_list[@]}"; do
+            echo -n "Testing $url ... "
+            http_code=$(curl --silent --output /dev/null --write-out "%{http_code}" --max-time 10 --connect-timeout 5 "$url")
+            exit_code=$?
+            if [ $exit_code -eq 28 ]; then
+              echo "TIMEOUT"
+              failed=1
+            elif [ $exit_code -ne 0 ]; then
+              echo "FAILED (curl exit code: $exit_code)"
+              failed=1
+            elif [[ "$http_code" != 2* ]]; then
+              echo "HTTP $http_code (unexpected)"
+            else
+              echo "HTTP $http_code OK"
+            fi
+          done
+
+          if [ $failed -ne 0 ]; then
+            echo "One or more URLs failed connectivity check."
+            exit 1
+          fi
