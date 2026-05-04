@@ -37,7 +37,6 @@ jobs:
           url_list = [
               "https://media.console.pbs.org/djadmin/",
               "https://nexus.pbs.org/nexus/",
-              "https://nexus-cf.digi-ops.pbs.org/nexus",
               "https://www.pbs.org/",
               "https://www.pbs.org/shows/",
               "https://www.pbs.org/newshour/",
