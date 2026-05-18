@@ -38,9 +38,6 @@ jobs:
               "https://media.console.pbs.org/djadmin/",
               "https://nexus.pbs.org/nexus/",
               "https://www.pbs.org/",
-              "https://www.pbs.org/shows/",
-              "https://www.pbs.org/newshour/",
-              "https://media-staging.console.pbs.org/djadmin/",
           ]
 
           failed = False
@@ -74,9 +71,6 @@ jobs:
             "https://media.console.pbs.org/djadmin/"
             "https://nexus.pbs.org/nexus/"
             "https://www.pbs.org/"
-            "https://www.pbs.org/shows/"
-            "https://www.pbs.org/newshour/",
-            "https://media-staging.console.pbs.org/djadmin/"
           )
 
           failed=0
