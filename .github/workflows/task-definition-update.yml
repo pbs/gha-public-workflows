@@ -27,6 +27,15 @@ on:
         description: 'Assume AWS role'
         required: false
         default: true
+      ecr_login:
+        type: boolean
+        description: 'Login to ECR'
+        required: false
+        default: true
+      container_name:
+        type: string
+        description: 'Container name for the task definition'
+        required: true
       image_name:
         type: string
         description: 'Docker image name'
@@ -37,15 +46,15 @@ on:
         default: "latest"
         required: false
       cpu:
-        type: integer
+        type: string
         description: 'CPU units for the task definition'
         required: false
-        default: 0
+        default: '0'
       memory:
-        type: integer
+        type: string
         description: 'Memory (MiB) for the task definition'
         required: false
-        default: 2048
+        default: '2048'
       brief_slack_msg:
         type: string
         description: 'Custom slack message for job end'
@@ -88,6 +97,7 @@ jobs:
         run: |
           echo "*Code Checkout* - success  " > slack_status.txt
           echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
           echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
           echo "*Task Definition Update* - $([[ -n \"$TASK_DEFINITION\" ]] && echo pending  || echo skipped )" >> slack_status.txt
           echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
@@ -111,6 +121,11 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
 
+      - name: AWS ECR Login
+        if: inputs.ecr_login == true
+        uses: aws-actions/amazon-ecr-login@v2
+        id: aws-ecr-login
+
       # Preparation Command
       - name: Preparation Command
         if: inputs.before_command != ''
@@ -130,41 +145,42 @@ jobs:
             sed -i 's|\*Preparation Command\* - .*|\*Preparation Command\* - ${{ steps.before-command.outcome }}|' slack_status.txt
 
 
-      - name: Download task def for migration
+      - name: Download task def
         run: |
-            aws ecs describe-task-definition --task-definition mvault-prod-migrate \
+            aws ecs describe-task-definition --task-definition ${{ inputs.name }} \
             --query taskDefinition --output json > task-def-migrate.json
 
-      - name: Render task def for migration
-        id: render-migrate
+      - name: Update task definition
+        if: inputs.image_name != ''
+        id: update-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
             task-definition: task-def-migrate.json
-            container-name: mvault-prod
-            image: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ needs.docker-image.outputs.image }}:${{ needs.docker-image.outputs.custom_tag }}
+            container-name: ${{ inputs.container_name }}
+            image: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image_name }}:${{ inputs.image_tag }}
 
-      - name: Register task def for migration
+    #   - name: Update task definition CPU
+    #     if: inputs.cpu != '0'
+    #     id: update-task-def-cpu
+    #     uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #     with:
+    #         task-definition: ${{ steps.update-task-def-image.outputs.task-definition }}
+    #         container-name: ${{ inputs.container_name }}
+    #         cpu: ${{ inputs.cpu }}
+        
+    #   - name: Update task definition Memory
+    #     if: inputs.memory != '0'
+    #     id: update-task-def-memory
+    #     uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #     with:
+    #         task-definition: ${{ steps.update-task-def-resources.outputs.task-definition }}
+    #         container-name: ${{ inputs.container_name }}
+    #         memory: ${{ inputs.memory }}
+
+      - name: Deploy task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-            task-definition: ${{ steps.render-migrate.outputs.task-definition }}
-
-      - name: Download task def for scheduled events rules
-        run: |
-            aws ecs describe-task-definition --task-definition mvault-prod-commands \
-              --query taskDefinition --output json > task-def-commands.json
-
-      - name: Render task def for scheduled events rules
-        id: render-commands
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-            task-definition: task-def-commands.json
-            container-name: mvault-commands
-            image: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ needs.docker-image.outputs.image }}:${{ needs.docker-image.outputs.custom_tag }}
-
-      - name: Register task def for scheduled events rules
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-            task-definition: ${{ steps.render-commands.outputs.task-definition }}
+            task-definition: ${{ steps.update-task-def.outputs.task-definition }}
 
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
