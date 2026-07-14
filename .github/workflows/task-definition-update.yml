@@ -12,16 +12,6 @@ on:
         description: 'Task Definition name'
         required: false
         default: 'deploy'
-      before_command:
-        type: string
-        description: '(Optional) Command to prepare the environment'
-        required: false
-        default: ''
-      after_command:
-        type: string
-        description: '(Optional) Command to teardown the environment'
-        required: false
-        default: ''
       assume_aws_role:
         type: boolean
         description: 'Assume AWS role'
@@ -36,9 +26,9 @@ on:
         type: string
         description: 'Container name for the task definition'
         required: true
-      image_name:
+      image:
         type: string
-        description: 'Docker image name'
+        description: 'Docker image'
         required: false
       image_tag:
         type: string
@@ -49,17 +39,14 @@ on:
         type: string
         description: 'CPU units for the task definition'
         required: false
-        default: '0'
       memory:
         type: string
         description: 'Memory (MiB) for the task definition'
         required: false
-        default: '2048'
-      brief_slack_msg:
+      entry-point:
         type: string
-        description: 'Custom slack message for job end'
+        description: 'Entry point for the container'
         required: false
-        default: ''
       custom_registry:
         type: string
         description: 'Custom registry path'
@@ -90,17 +77,9 @@ jobs:
 
       # Slack preparation
       - name: Slack Status file
-        if: inputs.brief_slack_msg == ''
-        env:
-          BEFORE_COMMAND: ${{ inputs.before_command }}
-          AFTER_COMMAND: ${{ inputs.after_command }}
         run: |
-          echo "*Code Checkout* - success  " > slack_status.txt
-          echo "*AWS Assume Role* - $([[ \"${{ inputs.assume_aws_role }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
-          echo "*AWS ECR Login* - $([[ \"${{ inputs.ecr_login }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
-          echo "*Preparation Command* - $([[ -n \"$BEFORE_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
-          echo "*Task Definition Update* - $([[ -n \"$TASK_DEFINITION\" ]] && echo pending  || echo skipped )" >> slack_status.txt
-          echo "*Teardown Command* - $([[ -n \"$AFTER_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
+          echo "Task definition update workflow for ${{ inputs.name }} with role ${{ inputs.assume_aws_role }}, on " > slack_status.txt
+          echo "Updated values for image, cpu, memory, entry point" >> slack_status.txt
           echo "*~~~~WORKFLOW~~~~* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
@@ -126,91 +105,34 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         id: aws-ecr-login
 
-      # Preparation Command
-      - name: Preparation Command
-        if: inputs.before_command != ''
-        id: before-command
-        run: ${{ inputs.before_command }}
-
-      - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
-        if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
-        with:
-          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: ${{ env.SLACK_TITLE }}
-          update: ${{ steps.slack.outputs.update }}
-          status_file_update: |
-            sed -i 's|\*AWS Assume Role\* - .*|\*AWS Assume Role\* - ${{ steps.aws-assume-role.outcome }}|' slack_status.txt;
-            sed -i 's|\*Preparation Command\* - .*|\*Preparation Command\* - ${{ steps.before-command.outcome }}|' slack_status.txt
-
-
       - name: Download task def
         run: |
             aws ecs describe-task-definition --task-definition ${{ inputs.name }} \
-            --query taskDefinition --output json > task-def-migrate.json
+            --query taskDefinition --output json > task-def.json
 
       - name: Update task definition
-        if: inputs.image_name != ''
+        uses: sergeysova/jq-action@v2
         id: update-task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        env:
+            IMAGE: cat task-def.json | grep -Eo '[0-9]+\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com\/[^"]*'
+            CPU: cat task-def.json | grep -Eo '"cpu":\s+[0-9]+\' | grep -Eo '[0-9]+'`
+            MEMORY: cat task-def.json | grep -Eo '"memory":\s+[0-9]+\' | grep -Eo '[0-9]+'
+            ENTRYPOINT: cat task-def.json | grep -Eo '"entryPoint":\s+[^\,\]\}]+' | sed 's/.*\[\(.*\)\].*/\1/'
         with:
-            task-definition: task-def-migrate.json
-            container-name: ${{ inputs.container_name }}
-            image: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image_name }}:${{ inputs.image_tag }}
-
-    #   - name: Update task definition CPU
-    #     if: inputs.cpu != '0'
-    #     id: update-task-def-cpu
-    #     uses: aws-actions/amazon-ecs-render-task-definition@v1
-    #     with:
-    #         task-definition: ${{ steps.update-task-def-image.outputs.task-definition }}
-    #         container-name: ${{ inputs.container_name }}
-    #         cpu: ${{ inputs.cpu }}
-        
-    #   - name: Update task definition Memory
-    #     if: inputs.memory != '0'
-    #     id: update-task-def-memory
-    #     uses: aws-actions/amazon-ecs-render-task-definition@v1
-    #     with:
-    #         task-definition: ${{ steps.update-task-def-resources.outputs.task-definition }}
-    #         container-name: ${{ inputs.container_name }}
-    #         memory: ${{ inputs.memory }}
+          args: |
+            .containerDefinitions[0].image = "`if [[ -n "${{ inputs.image }}" ]]; then echo "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}"; else echo "$IMAGE"; fi`" |
+            .containerDefinitions[0].name = "`if [[ -n "${{ inputs.container_name }}" ]]; then echo "${{ inputs.container_name }}"; else echo "$CONTAINER_NAME"; fi`" |
+            .cpu = `if [[ -n "${{ inputs.cpu }}" ]]; then echo ${{ inputs.cpu }}; else echo $CPU; fi` |
+            .memory = `if [[ -n ${{ inputs.memory }} ]]; then echo "${{ inputs.memory }}"; else echo $MEMORY; fi` |
+            .containerDefinitions[0].entryPoint = ["`if [[ -n "${{ inputs.entry-point }}" ]]; then echo "${{ inputs.entry-point }}"; else echo "$ENTRYPOINT"; fi`"]
+          file: task-def.json
+          output_file: task-def-updated.json
+            
 
       - name: Deploy task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
             task-definition: ${{ steps.update-task-def.outputs.task-definition }}
-
-      - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
-        if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
-        with:
-          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: ${{ env.SLACK_TITLE }}
-          update: ${{ steps.slack.outputs.update }}
-          status_file_update: |
-            sed -i 's|\*Deploy ECS Service ${{ env.DEPLOY_NAME }}\* - .*|\*Deploy ECS Service ${{ env.DEPLOY_NAME }}\* - ${{ steps.deploy.outcome }}|' slack_status.txt
-
-
-      # Teardown Command
-      - name: Teardown Command
-        if: always() && inputs.after_command != ''
-        id: after-command
-        run: ${{ inputs.after_command }}
-        continue-on-error: true
-
-      - name: Update Slack
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
-        if: always() && inputs.after_command != '' && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
-        with:
-          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-          title: ${{ env.SLACK_TITLE }}
-          update: ${{ steps.slack.outputs.update }}
-          status_file_update: |
-            sed -i 's|\*Teardown Command\* - .*|\*Teardown Command\* - ${{ steps.after-command.outcome }}|' slack_status.txt
 
       # Job End Status
       - name: Set job end status

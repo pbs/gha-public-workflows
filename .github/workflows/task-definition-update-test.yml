@@ -1,0 +1,20 @@
+name: Test - task-definition-update.yml template
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+    deploy:
+      uses: ./.github/workflows/task-definition-update.yml
+      secrets: inherit
+      with:
+        env: test
+        name: test-task-def
+        before_command: pwd
+        after_command: pwd
+        image_name: test-image
+        image_tag: test-tag
