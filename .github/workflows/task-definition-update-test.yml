@@ -16,5 +16,9 @@ jobs:
         name: test-task-def
         before_command: pwd
         after_command: pwd
-        image_name: test-image
+        container_name: test-container
+        image: test-image
         image_tag: test-tag
+        cpu: 256
+        memory: 512
+        entry-point: /bin/bash

@@ -7,7 +7,7 @@ on:
         type: string
         description: 'Environment'
         required: true
-      name:
+      task_name:
         type: string
         description: 'Task Definition name'
         required: false
@@ -60,7 +60,7 @@ on:
 env:
   APP_NAME: ${{ vars.APP_NAME }}
   DOCKER_REGISTRY: ${{ inputs.custom_registry || format('{0}.dkr.ecr.{1}.amazonaws.com', vars.AWS_ACCOUNT, vars.AWS_REGION) }}
-  DEPLOY_NAME: ${{ inputs.name != '' && inputs.name || format('{0}/{1}', inputs.ecs_cluster, inputs.ecs_service) }}
+  DEPLOY_NAME: ${{ inputs.task_name != '' && inputs.task_name || format('{0}/{1}', inputs.ecs_cluster, inputs.ecs_service) }}
   SLACK_TITLE: "Task Definition Update - ${{ vars.APP_NAME }} -> ${{ inputs.env }}"
 
 
@@ -68,7 +68,7 @@ jobs:
   task-definitions-update:
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
-    name: update task definition ${{ inputs.name }}
+    name: update task definition ${{ inputs.task_name }}
     steps:
       - name: Code Checkout
         uses: actions/checkout@main
@@ -78,8 +78,8 @@ jobs:
       # Slack preparation
       - name: Slack Status file
         run: |
-          echo "Task definition update workflow for ${{ inputs.name }} with role ${{ inputs.assume_aws_role }}, on " > slack_status.txt
-          echo "Updated values for image, cpu, memory, entry point" >> slack_status.txt
+          echo "Task definition update workflow for ${{ inputs.task_name }} with role ${{ inputs.assume_aws_role }}, on " > slack_status.txt
+          echo "Updated value(s) for image, cpu, memory and entry point" >> slack_status.txt
           echo "*~~~~WORKFLOW~~~~* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
@@ -107,26 +107,22 @@ jobs:
 
       - name: Download task def
         run: |
-            aws ecs describe-task-definition --task-definition ${{ inputs.name }} \
+            aws ecs describe-task-definition --task-definition ${{ inputs.task_name }} \
             --query taskDefinition --output json > task-def.json
 
       - name: Update task definition
-        uses: sergeysova/jq-action@v2
         id: update-task-def
         env:
             IMAGE: cat task-def.json | grep -Eo '[0-9]+\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com\/[^"]*'
             CPU: cat task-def.json | grep -Eo '"cpu":\s+[0-9]+\' | grep -Eo '[0-9]+'`
             MEMORY: cat task-def.json | grep -Eo '"memory":\s+[0-9]+\' | grep -Eo '[0-9]+'
             ENTRYPOINT: cat task-def.json | grep -Eo '"entryPoint":\s+[^\,\]\}]+' | sed 's/.*\[\(.*\)\].*/\1/'
-        with:
-          args: |
-            .containerDefinitions[0].image = "`if [[ -n "${{ inputs.image }}" ]]; then echo "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}"; else echo "$IMAGE"; fi`" |
-            .containerDefinitions[0].name = "`if [[ -n "${{ inputs.container_name }}" ]]; then echo "${{ inputs.container_name }}"; else echo "$CONTAINER_NAME"; fi`" |
-            .cpu = `if [[ -n "${{ inputs.cpu }}" ]]; then echo ${{ inputs.cpu }}; else echo $CPU; fi` |
-            .memory = `if [[ -n ${{ inputs.memory }} ]]; then echo "${{ inputs.memory }}"; else echo $MEMORY; fi` |
-            .containerDefinitions[0].entryPoint = ["`if [[ -n "${{ inputs.entry-point }}" ]]; then echo "${{ inputs.entry-point }}"; else echo "$ENTRYPOINT"; fi`"]
-          file: task-def.json
-          output_file: task-def-updated.json
+        run:
+            cat task-def.json | jq ".containerDefinitions[0].image |= \"`if [[ -n "${{ inputs.image }}" ]]; then echo "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}"; else echo "$IMAGE"; fi`\"" > task-def-updated.json
+            cat task-def-updated.json | jq ".containerDefinitions[0].name |= \"`if [[ -n "${{ inputs.container_name }}" ]]; then echo "${{ inputs.container_name }}"; else echo "$CONTAINER_NAME"; fi`\"" > task-def-updated.json
+            cat task-def-updated.json | jq ".cpu |= `if [[ -n "${{ inputs.cpu }}" ]]; then echo ${{ inputs.cpu }}; else echo $CPU; fi`" > task-def-updated.json
+            cat task-def-updated.json | jq ".memory |= `if [[ -n ${{ inputs.memory }} ]]; then echo "${{ inputs.memory }}"; else echo $MEMORY; fi`" > task-def-updated.json
+            cat task-def-updated.json | jq ".containerDefinitions[0].entryPoint |= [\"`if [[ -n "${{ inputs.entry-point }}" ]]; then echo "${{ inputs.entry-point }}"; else echo "$ENTRYPOINT"; fi`\"]" > task-def-updated.json
             
 
       - name: Deploy task definition
@@ -160,10 +156,10 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
-            sed -i "s|image|image: $([[ -n "${{ inputs.image }}" ]] && echo "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" || echo UNCHANGED)|" slack_status.txt
-            sed -i "s|cpu|cpu: $([[ -n "${{ inputs.cpu }}" ]] && echo "${{ inputs.cpu }}" || echo UNCHANGED)|" slack_status.txt
-            sed -i "s|memory|memory: $([[ -n "${{ inputs.memory }}" ]] && echo "${{ inputs.memory }}" || echo UNCHANGED)|" slack_status.txt
-            sed -i "s|entry point|entry point: $([[ -n "${{ inputs.entry-point }}" ]] && echo "${{ inputs.entry-point }}" || echo UNCHANGED)|" slack_status.txt
+            sed -i "s|image|$([[ -n "${{ inputs.image }}" ]] && echo "image: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" || echo '')|" slack_status.txt
+            sed -i "s|cpu|$([[ -n "${{ inputs.cpu }}" ]] && echo "cpu: ${{ inputs.cpu }}" || echo '')|" slack_status.txt
+            sed -i "s|memory|$([[ -n "${{ inputs.memory }}" ]] && echo "memory: ${{ inputs.memory }}" || echo '')|" slack_status.txt
+            sed -i "s|entry point|$([[ -n "${{ inputs.entry-point }}" ]] && echo "entry point: ${{ inputs.entry-point }}" || echo '')|" slack_status.txt
             sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
 
       # Brief Slack msg content

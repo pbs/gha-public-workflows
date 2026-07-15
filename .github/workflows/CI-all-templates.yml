@@ -55,3 +55,16 @@ jobs:
           pwd
         after_command: pwd
         # parser: true
+    update-task-definition:
+      uses: ./.github/workflows/task-definition-update.yml
+      secrets: inherit
+      needs: build
+      with:
+        env: test
+        task_name: test-task-def
+        container_name: test-container
+        image: ${{ needs.build.outputs.image }}
+        image_tag: ${{ needs.build.outputs.custom_tag }}
+        cpu: 256
+        memory: 512
+        entry-point: /bin/bash
