@@ -160,6 +160,10 @@ jobs:
           title: ${{ env.SLACK_TITLE }}
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
+            sed -i "s|image|image: $([[ -n "${{ inputs.image }}" ]] && echo "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" || echo UNCHANGED)|" slack_status.txt
+            sed -i "s|cpu|cpu: $([[ -n "${{ inputs.cpu }}" ]] && echo "${{ inputs.cpu }}" || echo UNCHANGED)|" slack_status.txt
+            sed -i "s|memory|memory: $([[ -n "${{ inputs.memory }}" ]] && echo "${{ inputs.memory }}" || echo UNCHANGED)|" slack_status.txt
+            sed -i "s|entry point|entry point: $([[ -n "${{ inputs.entry-point }}" ]] && echo "${{ inputs.entry-point }}" || echo UNCHANGED)|" slack_status.txt
             sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
 
       # Brief Slack msg content
