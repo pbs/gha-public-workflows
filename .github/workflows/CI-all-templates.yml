@@ -67,4 +67,4 @@ jobs:
         image_tag: ${{ needs.build.outputs.custom_tag }}
         cpu: 256
         memory: 512
-        entry-point: /bin/bash
+        entry-point: ./app/start.sh

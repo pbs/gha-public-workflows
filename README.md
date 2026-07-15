@@ -212,3 +212,37 @@ jobs:
 | `tf_vars_path`         | <p>Terraform vars file path, relative to tf_workdir</p>          | `string` | `false`  | `""`    |
 | `additional_init_args` | <p>[Optional] Additional args to be added to tf init command</p> | `string` | `false`  | `""`    |
 | `additional_plan_args` | <p>[Optional] Additional args to be added to tf plan command</p> | `string` | `false`  | `""`    |
+
+### Task Definition Update
+#### *Update ECS task definition settings such as image, CPU, memory and entry point*
+### Usage
+```yaml
+jobs:
+    update-task-definition:
+      uses: pbs/gha-public-workflows/.github/workflows/task-definition-update.yml@main
+      secrets: inherit
+      with:
+        env: test
+        task_name: deploy
+        container_name: my-container
+        image: my-app
+        image_tag: latest
+        cpu: 256
+        memory: 512
+        entry-point: ./app/start.sh
+```
+<!-- action-docs-inputs source="./.github/workflows/task-definition-update.yml" -->
+### Inputs
+
+| name | description | type | required | default |
+| --- | --- | --- | --- | --- |
+| `env` | <p>Environment</p> | `string` | `true` | `""` |
+| `task_name` | <p>Task Definition name</p> | `string` | `false` | `deploy` |
+| `assume_aws_role` | <p>Assume AWS role</p> | `boolean` | `false` | `true` |
+| `ecr_login` | <p>Login to ECR</p> | `boolean` | `false` | `true` |
+| `container_name` | <p>Container name for the task definition</p> | `string` | `true` | `""` |
+| `image` | <p>Docker image name</p> | `string` | `false` | `""` |
+| `image_tag` | <p>Docker image tag</p> | `string` | `false` | `latest` |
+| `cpu` | <p>CPU units for the task definition</p> | `string` | `false` | `""` |
+| `memory` | <p>Memory (MiB) for the task definition</p> | `string` | `false` | `""` |
+| `entry-point` | <p>Entry point for the container</p> | `string` | `false` | `""` |
