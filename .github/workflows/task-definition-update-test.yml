@@ -13,9 +13,7 @@ jobs:
       secrets: inherit
       with:
         env: test
-        name: test-task-def
-        before_command: pwd
-        after_command: pwd
+        name: test-exec
         container_name: test-container
         image: test-image
         image_tag: test-tag
