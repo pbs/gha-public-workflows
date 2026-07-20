@@ -61,7 +61,7 @@ jobs:
       needs: build
       with:
         env: test
-        task_name: test-task-def
+        task_name: test-exec
         container_name: test-container
         image: ${{ needs.build.outputs.image }}
         image_tag: ${{ needs.build.outputs.custom_tag }}
