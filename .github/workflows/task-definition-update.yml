@@ -127,7 +127,7 @@ jobs:
       - name: Deploy task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-            task-definition: ${{ steps.update-task-def.outputs.task-def-updated-json }}
+            task-definition: ${{ steps.update-task-def.outputs.task-def-updated.json }}
 
       # Job End Status
       - name: Set job end status
