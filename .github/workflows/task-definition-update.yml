@@ -135,16 +135,8 @@ jobs:
         if: success() || failure()
         id: end-status
         run: |
-          if [[ "${{ steps.before-command.outcome }}" == "failure" ]]; then
-            echo "::error step=before-command::Failed to run preparation command!"; exit 1
-          fi
-
           if [[ "${{ steps.deploy.outcome }}" != "success" && "${{ inputs.env }}" != "test" ]]; then
             echo "::error step=build-image::Failed to deploy ECS service ${{ env.DEPLOY_NAME  }}!"; exit 2
-          fi
-
-          if [[ "${{ steps.after-command.outcome }}" == "failure" ]]; then
-            echo "::warning step=after-command::Failed to run teardown command!"; exit 0
           fi
 
       - name: Update Slack
