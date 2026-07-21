@@ -122,13 +122,12 @@ jobs:
             cat task-def-updated.json | jq ".containerDefinitions[0].name |= \"`if [[ -n "${{ inputs.container_name }}" ]]; then echo "${{ inputs.container_name }}"; else echo "$CONTAINER_NAME"; fi`\"" > task-def-updated.json
             cat task-def-updated.json | jq ".cpu |= `if [[ -n "${{ inputs.cpu }}" ]]; then echo ${{ inputs.cpu }}; else echo $CPU; fi`" > task-def-updated.json
             cat task-def-updated.json | jq ".memory |= `if [[ -n ${{ inputs.memory }} ]]; then echo "${{ inputs.memory }}"; else echo $MEMORY; fi`" > task-def-updated.json
-            cat task-def-updated.json | jq ".containerDefinitions[0].entryPoint |= [\"`if [[ -n "${{ inputs.entry-point }}" ]]; then echo "${{ inputs.entry-point }}"; else echo "$ENTRYPOINT"; fi`\"]" > task-def-updated.json
+            cat task-def-updated.json | jq ".containerDefinitions[0].entryPoint |= [\"`if [[ -n "${{ inputs.entry-point }}" ]]; then echo "${{ inputs.entry-point }}"; else echo "$ENTRYPOINT"; fi`\"]" > task-def-updated.json >> $GITHUB_OUTPUT
             
-
       - name: Deploy task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-            task-definition: ${{ steps.update-task-def.outputs.task-definition }}
+            task-definition: ${{ steps.update-task-def.outputs.task-def-updated-json }}
 
       # Job End Status
       - name: Set job end status
