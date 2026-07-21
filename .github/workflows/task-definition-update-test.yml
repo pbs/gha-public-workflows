@@ -13,7 +13,7 @@ jobs:
       secrets: inherit
       with:
         env: test
-        task-name: test-exec
+        task_name: test-exec
         container_name: test-container
         image: test-image
         image_tag: test-tag
