@@ -118,7 +118,11 @@ jobs:
             if [[ -n "${{ inputs.cpu }}" ]]; then jq --arg cpu "${{ inputs.cpu }}" '.containerDefinitions[0].cpu = $cpu' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
             if [[ -n "${{ inputs.memory }}" ]]; then jq --arg memory "${{ inputs.memory }}" '.containerDefinitions[0].memory = $memory' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
             if [[ -n "${{ inputs.entry-point }}" ]]; then jq --arg entryPoint "${{ inputs.entry-point }}" '.containerDefinitions[0].entryPoint = ["$entryPoint"]' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
-            echo "task-definition=$(cat task-def.json)" >> "$GITHUB_OUTPUT"
+            {
+              echo "task-definition<<EOF"
+              cat task-def.json
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
             
       - name: Deploy task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
