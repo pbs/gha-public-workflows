@@ -115,10 +115,10 @@ jobs:
         run: |
             if [[ -n "${{ inputs.image }}" ]]; then jq --arg image "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" '.containerDefinitions[0].image = $image' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
             if [[ -n "${{ inputs.container_name }}" ]]; then jq --arg name "${{ inputs.container_name }}" '.containerDefinitions[0].name = $name' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
-            if [[ -n "${{ inputs.cpu }}" ]]; then jq --arg cpu "${{ inputs.cpu }}" '.containerDefinitions[0].cpu = $cpu' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
-            if [[ -n "${{ inputs.memory }}" ]]; then jq --arg memory "${{ inputs.memory }}" '.containerDefinitions[0].memory = $memory' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.cpu }}" ]]; then jq --argjson cpu "${{ inputs.cpu }}" '.containerDefinitions[0].cpu = $cpu' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.memory }}" ]]; then jq --argjson memory "${{ inputs.memory }}" '.containerDefinitions[0].memory = $memory' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
             if [[ -n "${{ inputs.entry-point }}" ]]; then jq --arg entryPoint "${{ inputs.entry-point }}" '.containerDefinitions[0].entryPoint = ["$entryPoint"]' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
-            echo "task-definition=task-def.json" >> "$GITHUB_OUTPUT"
+            printf 'task-definition=%s\n' 'task-def.json' >> "$GITHUB_OUTPUT"
             
       - name: Deploy task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
