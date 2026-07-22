@@ -112,17 +112,13 @@ jobs:
 
       - name: Update task definition
         id: update-task-def
-        env:
-            IMAGE: cat task-def.json | grep -Eo '[0-9]+\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com\/[^"]*'
-            CPU: cat task-def.json | grep -Eo '"cpu":\s+[0-9]+\' | grep -Eo '[0-9]+'`
-            MEMORY: cat task-def.json | grep -Eo '"memory":\s+[0-9]+\' | grep -Eo '[0-9]+'
-            ENTRYPOINT: cat task-def.json | grep -Eo '"entryPoint":\s+[^\,\]\}]+' | sed 's/.*\[\(.*\)\].*/\1/'
         run:
-            content="$(jq ".containerDefinitions[0].image |= \"`if [[ -n "${{ inputs.image }}" ]]; then echo "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}"; else echo "$IMAGE"; fi`\"" task-def.json)" && echo "${content}" > task-def-updated.json
-            content="$(jq ".containerDefinitions[0].name |= \"`if [[ -n "${{ inputs.container_name }}" ]]; then echo "${{ inputs.container_name }}"; else echo "$CONTAINER_NAME"; fi`\"" task-def-updated.json)" && echo "${content}" > task-def-updated.json
-            content="$(jq ".cpu |= `if [[ -n "${{ inputs.cpu }}" ]]; then echo ${{ inputs.cpu }}; else echo $CPU; fi`" task-def-updated.json)" && echo "${content}" > task-def-updated.json
-            content="$(jq ".memory |= `if [[ -n ${{ inputs.memory }} ]]; then echo "${{ inputs.memory }}"; else echo $MEMORY; fi`" task-def-updated.json)" && echo "${content}" > task-def-updated.json
-            content="$(jq ".containerDefinitions[0].entryPoint |= [\"`if [[ -n "${{ inputs.entry-point }}" ]]; then echo "${{ inputs.entry-point }}"; else echo "$ENTRYPOINT"; fi`\"]" task-def-updated.json)" && echo "${content}" > task-def-updated.json >> $GITHUB_OUTPUT/task-definition
+            if [[ -n "${{ inputs.image }}" ]]; then jq --arg image "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" '.containerDefinitions[0].image = "$image"' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.container_name }}" ]]; then jq --arg name "${{ inputs.container_name }}" '.containerDefinitions[0].name = "$name"' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.cpu }}" ]]; then jq --arg cpu "${{ inputs.cpu }}" '.containerDefinitions[0].cpu = "$cpu"' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.memory }}" ]]; then jq --arg memory "${{ inputs.memory }}" '.containerDefinitions[0].memory = "$memory"' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.entry-point }}" ]]; then jq --arg entryPoint "${{ inputs.entry-point }}" '.containerDefinitions[0].entryPoint = ["$entryPoint"]' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            cat task-def.json >> $GITHUB_OUTPUT/task-definition
             
       - name: Deploy task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
