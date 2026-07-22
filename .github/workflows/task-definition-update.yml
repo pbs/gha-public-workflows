@@ -113,10 +113,10 @@ jobs:
       - name: Update task definition
         id: update-task-def
         run:
-            if [[ -n "${{ inputs.image }}" ]]; then jq --arg image "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" '.containerDefinitions[0].image = "$image"' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
-            if [[ -n "${{ inputs.container_name }}" ]]; then jq --arg name "${{ inputs.container_name }}" '.containerDefinitions[0].name = "$name"' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
-            if [[ -n "${{ inputs.cpu }}" ]]; then jq --arg cpu "${{ inputs.cpu }}" '.containerDefinitions[0].cpu = "$cpu"' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
-            if [[ -n "${{ inputs.memory }}" ]]; then jq --arg memory "${{ inputs.memory }}" '.containerDefinitions[0].memory = "$memory"' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.image }}" ]]; then jq --arg image "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" '.containerDefinitions[0].image = $image' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.container_name }}" ]]; then jq --arg name "${{ inputs.container_name }}" '.containerDefinitions[0].name = $name' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.cpu }}" ]]; then jq --arg cpu "${{ inputs.cpu }}" '.containerDefinitions[0].cpu = $cpu' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.memory }}" ]]; then jq --arg memory "${{ inputs.memory }}" '.containerDefinitions[0].memory = $memory' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
             if [[ -n "${{ inputs.entry-point }}" ]]; then jq --arg entryPoint "${{ inputs.entry-point }}" '.containerDefinitions[0].entryPoint = ["$entryPoint"]' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
             cat task-def.json >> $GITHUB_OUTPUT/task-definition
             
