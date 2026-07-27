@@ -19,4 +19,4 @@ jobs:
         image_tag: test-tag
         cpu: 256
         memory: 512
-        entry-point: ./app/start.sh
+        entrypoint: ./app/start.sh

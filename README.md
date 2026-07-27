@@ -229,7 +229,7 @@ jobs:
         image_tag: latest
         cpu: 256
         memory: 512
-        entry-point: ./app/start.sh
+        entrypoint: ./app/start.sh
 ```
 <!-- action-docs-inputs source="./.github/workflows/task-definition-update.yml" -->
 ### Inputs
@@ -245,4 +245,4 @@ jobs:
 | `image_tag` | <p>Docker image tag</p> | `string` | `false` | `latest` |
 | `cpu` | <p>CPU units for the task definition</p> | `string` | `false` | `""` |
 | `memory` | <p>Memory (MiB) for the task definition</p> | `string` | `false` | `""` |
-| `entry-point` | <p>Entry point for the container</p> | `string` | `false` | `""` |
+| `entrypoint` | <p>Entry point for the container</p> | `string` | `false` | `""` |

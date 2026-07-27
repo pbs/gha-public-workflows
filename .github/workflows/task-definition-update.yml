@@ -43,7 +43,7 @@ on:
         type: string
         description: 'Memory (MiB) for the task definition'
         required: false
-      entry-point:
+      entrypoint:
         type: string
         description: 'Entry point for the container'
         required: false
@@ -117,7 +117,7 @@ jobs:
             if [[ -n "${{ inputs.container_name }}" ]]; then jq --arg name "${{ inputs.container_name }}" '.containerDefinitions[0].name = $name' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
             if [[ -n "${{ inputs.cpu }}" ]]; then jq --argjson cpu "${{ inputs.cpu }}" '.containerDefinitions[0].cpu = $cpu' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
             if [[ -n "${{ inputs.memory }}" ]]; then jq --argjson memory "${{ inputs.memory }}" '.containerDefinitions[0].memory = $memory' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
-            if [[ -n "${{ inputs.entry-point }}" ]]; then jq --arg entryPoint "${{ inputs.entry-point }}" '.containerDefinitions[0].entryPoint = [$entryPoint]' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.entrypoint }}" ]]; then jq --arg entryPoint "${{ inputs.entrypoint }}" '.containerDefinitions[0].entryPoint = [$entryPoint]' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
             printf 'task-definition=%s\n' 'task-def.json' >> "$GITHUB_OUTPUT"
             
       - name: Deploy task definition
@@ -146,7 +146,7 @@ jobs:
             sed -i "s|image|$([[ -n "${{ inputs.image }}" ]] && echo "image: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" || echo '')|" slack_status.txt
             sed -i "s|cpu|$([[ -n "${{ inputs.cpu }}" ]] && echo "cpu: ${{ inputs.cpu }}" || echo '')|" slack_status.txt
             sed -i "s|memory|$([[ -n "${{ inputs.memory }}" ]] && echo "memory: ${{ inputs.memory }}" || echo '')|" slack_status.txt
-            sed -i "s|entry point|$([[ -n "${{ inputs.entry-point }}" ]] && echo "entry point: ${{ inputs.entry-point }}" || echo '')|" slack_status.txt
+            sed -i "s|entry point|$([[ -n "${{ inputs.entrypoint }}" ]] && echo "entry point: ${{ inputs.entrypoint }}" || echo '')|" slack_status.txt
             sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
 
       # Brief Slack msg content
@@ -158,11 +158,13 @@ jobs:
           name: slack-artifact
           path: slack
         continue-on-error: true
+
       - name: Format brief slack msg
         if: inputs.brief_slack_msg != ''
         run: |
           [ -f slack/brief_status.txt ] && cat slack/brief_status.txt || (mkdir -p slack ; touch slack/brief_status.txt);
           echo "*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:) " >> slack/brief_status.txt
+
       - name: Upload file containing brief slack msg
         if: inputs.brief_slack_msg != ''
         uses: actions/upload-artifact@v4
