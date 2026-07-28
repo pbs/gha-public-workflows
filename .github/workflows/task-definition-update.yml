@@ -79,7 +79,7 @@ jobs:
       - name: Slack Status file
         run: |
           echo "Task definition update workflow for ${{ inputs.task_name }} with role ${{ inputs.assume_aws_role }}, on " > slack_status.txt
-          echo "Updated value(s) for image, cpu, memory and entry point" >> slack_status.txt
+          echo "Updated value(s) for image, cpu, memory and entrypoint" >> slack_status.txt
           echo "*~~~~WORKFLOW~~~~* - _RUNNING_" >> slack_status.txt
 
       # Slack Workflow start
@@ -146,7 +146,7 @@ jobs:
             sed -i "s|image|$([[ -n "${{ inputs.image }}" ]] && echo "image: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" || echo '')|" slack_status.txt
             sed -i "s|cpu|$([[ -n "${{ inputs.cpu }}" ]] && echo "cpu: ${{ inputs.cpu }}" || echo '')|" slack_status.txt
             sed -i "s|memory|$([[ -n "${{ inputs.memory }}" ]] && echo "memory: ${{ inputs.memory }}" || echo '')|" slack_status.txt
-            sed -i "s|entry point|$([[ -n "${{ inputs.entrypoint }}" ]] && echo "entry point: ${{ inputs.entrypoint }}" || echo '')|" slack_status.txt
+            sed -i "s|entrypoint|$([[ -n "${{ inputs.entrypoint }}" ]] && echo "entrypoint: ${{ inputs.entrypoint }}" || echo '')|" slack_status.txt
             sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
 
       # Brief Slack msg content
