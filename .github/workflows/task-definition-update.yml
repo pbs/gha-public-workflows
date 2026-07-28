@@ -1,0 +1,174 @@
+name: Template - Task Definition Update
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        type: string
+        description: 'Environment'
+        required: true
+      task_name:
+        type: string
+        description: 'Task Definition name'
+        required: false
+        default: 'deploy'
+      assume_aws_role:
+        type: boolean
+        description: 'Assume AWS role'
+        required: false
+        default: true
+      ecr_login:
+        type: boolean
+        description: 'Login to ECR'
+        required: false
+        default: true
+      container_name:
+        type: string
+        description: 'Container name for the task definition'
+        required: true
+      image:
+        type: string
+        description: 'Docker image'
+        required: false
+      image_tag:
+        type: string
+        description: 'Docker image tag'
+        default: "latest"
+        required: false
+      cpu:
+        type: string
+        description: 'CPU units for the task definition'
+        required: false
+      memory:
+        type: string
+        description: 'Memory (MiB) for the task definition'
+        required: false
+      entrypoint:
+        type: string
+        description: 'Entry point for the container'
+        required: false
+      custom_registry:
+        type: string
+        description: 'Custom registry path'
+        required: false
+        default: ''
+
+    secrets:
+      SLACK_BOT_TOKEN:
+        required: false
+        
+env:
+  APP_NAME: ${{ vars.APP_NAME }}
+  DOCKER_REGISTRY: ${{ inputs.custom_registry || format('{0}.dkr.ecr.{1}.amazonaws.com', vars.AWS_ACCOUNT, vars.AWS_REGION) }}
+  DEPLOY_NAME: ${{ inputs.task_name != '' && inputs.task_name || format('{0}/{1}', inputs.ecs_cluster, inputs.ecs_service) }}
+  SLACK_TITLE: "Task Definition Update - ${{ vars.APP_NAME }} -> ${{ inputs.env }}"
+
+
+jobs:
+  task-definitions-update:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+    name: update task definition ${{ inputs.task_name }}
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      # Slack preparation
+      - name: Slack Status file
+        run: |
+          echo "Task definition update workflow for ${{ inputs.task_name }} with role ${{ inputs.assume_aws_role }}, on " > slack_status.txt
+          echo "Updated value(s) for image, cpu, memory and entrypoint" >> slack_status.txt
+          echo "*~~~~WORKFLOW~~~~* - _RUNNING_" >> slack_status.txt
+
+      # Slack Workflow start
+      - name: Slack Workflow start
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
+        id: slack
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          title: ${{ env.SLACK_TITLE }}
+
+      - name: Assume AWS role
+        if: inputs.assume_aws_role == true
+        uses: aws-actions/configure-aws-credentials@v4
+        id: aws-assume-role
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/service/${{ vars.AWS_OIDC_ROLE }}
+
+      - name: AWS ECR Login
+        if: inputs.ecr_login == true
+        uses: aws-actions/amazon-ecr-login@v2
+        id: aws-ecr-login
+
+      - name: Download task def
+        run: |
+            aws ecs describe-task-definition --task-definition ${{ inputs.task_name }} \
+            --query taskDefinition --output json > task-def.json
+
+      - name: Update task definition
+        id: update-task-def
+        run: |
+            if [[ -n "${{ inputs.image }}" ]]; then jq --arg image "${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" '.containerDefinitions[0].image = $image' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.container_name }}" ]]; then jq --arg name "${{ inputs.container_name }}" '.containerDefinitions[0].name = $name' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.cpu }}" ]]; then jq --argjson cpu "${{ inputs.cpu }}" '.containerDefinitions[0].cpu = $cpu' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.memory }}" ]]; then jq --argjson memory "${{ inputs.memory }}" '.containerDefinitions[0].memory = $memory' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            if [[ -n "${{ inputs.entrypoint }}" ]]; then jq --arg entryPoint "${{ inputs.entrypoint }}" '.containerDefinitions[0].entryPoint = [$entryPoint]' task-def.json > task-def-updated.json && mv task-def-updated.json task-def.json; fi
+            printf 'task-definition=%s\n' 'task-def.json' >> "$GITHUB_OUTPUT"
+            
+      - name: Deploy task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+            task-definition: ${{ steps.update-task-def.outputs.task-definition }}
+
+      # Job End Status
+      - name: Set job end status
+        if: success() || failure()
+        id: end-status
+        run: |
+          if [[ "${{ steps.deploy.outcome }}" != "success" && "${{ inputs.env }}" != "test" ]]; then
+            echo "::error step=build-image::Failed to deploy ECS service ${{ env.DEPLOY_NAME  }}!"; exit 2
+          fi
+
+      - name: Update Slack
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@main
+        if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
+        with:
+          channel_id: ${{ vars.SLACK_CHANNEL_ID }}
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          title: ${{ env.SLACK_TITLE }}
+          update: ${{ steps.slack.outputs.update }}
+          status_file_update: |
+            sed -i "s|image|$([[ -n "${{ inputs.image }}" ]] && echo "image: ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.image }}:${{ inputs.image_tag }}" || echo '')|" slack_status.txt
+            sed -i "s|cpu|$([[ -n "${{ inputs.cpu }}" ]] && echo "cpu: ${{ inputs.cpu }}" || echo '')|" slack_status.txt
+            sed -i "s|memory|$([[ -n "${{ inputs.memory }}" ]] && echo "memory: ${{ inputs.memory }}" || echo '')|" slack_status.txt
+            sed -i "s|entrypoint|$([[ -n "${{ inputs.entrypoint }}" ]] && echo "entrypoint: ${{ inputs.entrypoint }}" || echo '')|" slack_status.txt
+            sed -i "s|\*~~~~WORKFLOW~~~~\* - .*|\*~~~~WORKFLOW~~~~\* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ || echo _FAILED_)|" slack_status.txt
+
+      # Brief Slack msg content
+      - name: Download file containing brief slack msg
+        uses: actions/download-artifact@v4
+        id: briefmsg
+        if: inputs.brief_slack_msg != ''
+        with:
+          name: slack-artifact
+          path: slack
+        continue-on-error: true
+
+      - name: Format brief slack msg
+        if: inputs.brief_slack_msg != ''
+        run: |
+          [ -f slack/brief_status.txt ] && cat slack/brief_status.txt || (mkdir -p slack ; touch slack/brief_status.txt);
+          echo "*${{ inputs.brief_slack_msg }}* - $([[ \"${{ steps.end-status.outcome }}\" == \"success\" ]] && echo _PASSED_ :white_check_mark: || echo _FAILED_ :x:) " >> slack/brief_status.txt
+
+      - name: Upload file containing brief slack msg
+        if: inputs.brief_slack_msg != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: slack-artifact
+          path: slack
+          overwrite: true

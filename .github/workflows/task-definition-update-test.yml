@@ -1,0 +1,22 @@
+name: Test - task-definition-update.yml template
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+    deploy:
+      uses: ./.github/workflows/task-definition-update.yml
+      secrets: inherit
+      with:
+        env: test
+        task_name: test-exec
+        container_name: test-container
+        image: test-image
+        image_tag: test-tag
+        cpu: 256
+        memory: 512
+        entrypoint: ./app/start.sh
