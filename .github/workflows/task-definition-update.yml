@@ -121,6 +121,7 @@ jobs:
             printf 'task-definition=%s\n' 'task-def.json' >> "$GITHUB_OUTPUT"
             
       - name: Deploy task definition
+        id: deploy
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
             task-definition: ${{ steps.update-task-def.outputs.task-definition }}
