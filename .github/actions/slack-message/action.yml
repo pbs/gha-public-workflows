@@ -83,13 +83,15 @@ runs:
       continue-on-error: true
 
     - id: slack
-      uses: slackapi/slack-github-action@v1.26.0
+      uses: slackapi/slack-github-action@v3.0.5
       if: steps.pre.outputs.STATUS_OUTPUT != '' && inputs.status_msg == ''
       with:
-        channel-id: ${{ inputs.channel_id }}
-        update-ts: ${{ inputs.update }}
+        method: ${{ inputs.update != '' && 'chat.update' || 'chat.postMessage' }}
+        token: ${{ inputs.token }}
         payload: |
           {
+            "channel": "${{ inputs.channel_id }}",
+            ${{ inputs.update != '' && format('"ts": "{0}",', inputs.update) || '' }}
             "attachments": [
               {
                 "title": "[${{ inputs.title }}]",
@@ -104,8 +106,6 @@ runs:
               }
             ]
           }
-      env:
-        SLACK_BOT_TOKEN: ${{ inputs.token }}
       continue-on-error: true
 
     - name: Format message
@@ -117,29 +117,29 @@ runs:
         echo "formated_msg=$FORMATED_MSG <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|LINK>" >> $GITHUB_OUTPUT
 
     - id: briefslack
-      uses: slackapi/slack-github-action@v1.26.0
+      uses: slackapi/slack-github-action@v3.0.5
       if: inputs.status_msg != ''
       with:
-        channel-id: ${{ inputs.channel_id }}
-        update-ts: ${{ inputs.update }}
+        method: ${{ inputs.update != '' && 'chat.update' || 'chat.postMessage' }}
+        token: ${{ inputs.token }}
         payload: |
           {
+            "channel": "${{ inputs.channel_id }}",
+            ${{ inputs.update != '' && format('"ts": "{0}",', inputs.update) || '' }}
             "type": "mrkdwn",
             "text": "${{ steps.formatmsg.outputs.formated_msg }}"
           }
-      env:
-        SLACK_BOT_TOKEN: ${{ inputs.token }}
       continue-on-error: true
 
-    - uses: slackapi/slack-github-action@v1.26.0
+    - uses: slackapi/slack-github-action@v3.0.5
       if: inputs.reply != ''
       with:
-        channel-id: ${{ inputs.channel_id }}
+        method: chat.postMessage
+        token: ${{ inputs.token }}
         payload: |
           {
+            "channel": "${{ inputs.channel_id }}",
             "text": "${{ inputs.title }}",
             "thread_ts": "${{ inputs.reply }}"
           }
-      env:
-        SLACK_BOT_TOKEN: ${{ inputs.token }}
       continue-on-error: true
