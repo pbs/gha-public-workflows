@@ -199,7 +199,7 @@ jobs:
       # Assume AWS role
       - name: Assume AWS role
         if: inputs.assume_aws_role == true
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         id: aws-assume-role
         with:
           aws-region: ${{ vars.AWS_REGION }}
@@ -240,14 +240,14 @@ jobs:
 
       # Docker image build
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Create and use a builder instance
         run: |
           docker buildx create --name builder --use
 
       - name: Docker Build Image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         id: build-image
         with:
           context: ${{ inputs.context }}
@@ -313,7 +313,7 @@ jobs:
         run: aws ecr batch-delete-image --registry-id ${{ env.REGISTRY_ID }} --repository-name ${{ env.APP_NAME }} --image-ids imageTag=${{ inputs.image_build_tag }} imageTag=${{ env.CUSTOM_TAG }} imageTag=cache-${{ inputs.image_build_tag }}
 
       - name: Docker Push Image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         id: push-image
         with:
           context: ${{ inputs.context }}
@@ -326,7 +326,7 @@ jobs:
             ${{ env.DYNAMIC_BUILD_ARGS }}
 
       - name: Docker Push Image Custom Tag
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         if: env.CUSTOM_TAG != ''
         id: push-image-custom-tag
         with:
