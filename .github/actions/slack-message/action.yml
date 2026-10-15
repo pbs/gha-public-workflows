@@ -92,6 +92,7 @@ runs:
           {
             "channel": "${{ inputs.channel_id }}",
             ${{ inputs.update != '' && format('"ts": "{0}",', inputs.update) || '' }}
+            "text": "${{ inputs.title }}",
             "attachments": [
               {
                 "title": "[${{ inputs.title }}]",

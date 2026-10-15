@@ -69,7 +69,7 @@ jobs:
 
       # Assume AWS role
       - name: Assume AWS role
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         id: aws-assume-role
         with:
           aws-region: ${{ vars.AWS_REGION }}
