@@ -171,7 +171,7 @@ jobs:
 
       - name: slack-channel1
         if: steps.tf-plan-string.outputs.no_drift == '0'
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v3.0.5
         with:
           method: chat.postMessage
           token: ${{ secrets.TF_DRIFT_SLACK_TOKEN }}
@@ -181,7 +181,7 @@ jobs:
 
       - name: slack-channel2
         if: steps.tf-plan-string.outputs.no_drift == '0' && steps.parse-slack-channels.outputs.channel2 != ''
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v3.0.5
         with:
           method: chat.postMessage
           token: ${{ secrets.TF_DRIFT_SLACK_TOKEN }}
