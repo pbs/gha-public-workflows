@@ -171,7 +171,7 @@ jobs:
 
       # Slack Workflow start
       - name: Slack Workflow start
-        uses: pbs/gha-public-workflows/.github/actions/slack-message@main # change branch to main before merging
+        uses: pbs/gha-public-workflows/.github/actions/slack-message@fix-slack-action-node24 # change branch to main before merging
         if: vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
         id: slack
         with:
