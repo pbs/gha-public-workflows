@@ -101,6 +101,11 @@ on:
         description: 'Docker build arguments'
         required: false
         default: ''
+      platforms:
+        type: string
+        description: '(Optional) Target platform for docker buildx, e.g. linux/amd64 or linux/arm64. Defaults to linux/amd64. Multi-platform values are not supported by the test build step (docker load only accepts a single platform).'
+        required: false
+        default: 'linux/amd64'
 
     outputs:
       image:
@@ -239,6 +244,10 @@ jobs:
 
 
       # Docker image build
+      - name: Set up QEMU (cross-platform emulation)
+        if: inputs.platforms != 'linux/amd64'
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -253,6 +262,7 @@ jobs:
           context: ${{ inputs.context }}
           file: ${{ inputs.dockerfile }}
           load: true
+          platforms: ${{ inputs.platforms }}
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_test_tag }}
           builder: builder
           cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
@@ -319,6 +329,7 @@ jobs:
           context: ${{ inputs.context }}
           file: ${{ inputs.dockerfile }}
           push: true
+          platforms: ${{ inputs.platforms }}
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_build_tag }}
           cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:cache-${{ inputs.image_build_tag }}
           build-args: |
@@ -333,6 +344,7 @@ jobs:
           context: ${{ inputs.context }}
           file: ${{ inputs.dockerfile }}
           push: true
+          platforms: ${{ inputs.platforms }}
           tags: ${{ env.DOCKER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CUSTOM_TAG }}
           build-args: |
             ${{ inputs.build_args }}
