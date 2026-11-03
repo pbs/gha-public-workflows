@@ -50,3 +50,23 @@ jobs:
       # parser: true
       # sonarqube: true
 
+  # Minimal check that the `runner` input actually gets a native arm64 GitHub-hosted
+  # runner from this org (Settings > Actions > Runners won't show this -- GitHub-hosted
+  # runner labels never appear there, only self-hosted ones). If this job sits in
+  # "Waiting for a runner" instead of completing, the org/runner-group doesn't grant
+  # access to ubuntu-24.04-arm.
+  build-arm64:
+    needs: setup
+    uses: ./.github/workflows/docker-build-push.yml
+    secrets: inherit
+    with:
+      env: test
+      immutable: true
+      image_name: test-templates
+      image_build_tag: latest-arm64
+      image_test_tag: test-arm64
+      platforms: linux/arm64
+      runner: ubuntu-24.04-arm
+      test_command: |
+        docker run --rm ${{ format('{0}.dkr.ecr.{1}.amazonaws.com', needs.setup.outputs.aws_account, needs.setup.outputs.aws_region) }}/test-templates:test-arm64 uname -m
+
