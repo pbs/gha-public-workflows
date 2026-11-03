@@ -116,6 +116,8 @@ jobs:
         ecs_service: test-service
         image_name: test-templates
         image_tag: latest
+        min_healthy_percent: "50"
+        max_percent: "150"
 ```
 <!-- action-docs-inputs source="./.github/workflows/ecs-deploy.yml" -->
 ### Inputs
@@ -134,6 +136,8 @@ jobs:
 | `image_tag` | <p>Docker image tag</p> | `string` | `false` | `latest` |
 | `timeout` | <p>ECS deploy timeout(seconds)</p> | `string` | `false` | `600` |
 | `brief_slack_msg` | <p>Custom slack message for job end</p> | `string` | `false` | `""` |
+| `min_healthy_percent` | <p>ECS deployment minimumHealthyPercent</p> | `string` | `false` | `100` |
+| `max_percent` | <p>ECS deployment maximumPercent</p> | `string` | `false` | `200` |
 <!-- action-docs-inputs source="./.github/workflows/ecs-deploy.yml" -->
 
 ### Run Commands
