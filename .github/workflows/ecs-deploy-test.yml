@@ -20,3 +20,5 @@ jobs:
         ecs_service: test-service
         image_name: test-image
         image_tag: test-tag
+        min_healthy_percent: "50"
+        max_percent: "150"

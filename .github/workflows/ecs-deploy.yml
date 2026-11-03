@@ -64,6 +64,16 @@ on:
         description: 'Custom registry path'
         required: false
         default: ''
+      min_healthy_percent:
+        type: string
+        description: 'ECS deployment minimumHealthyPercent'
+        required: false
+        default: "100"
+      max_percent:
+        type: string
+        description: 'ECS deployment maximumPercent'
+        required: false
+        default: "200"
 
     secrets:
       SLACK_BOT_TOKEN:
@@ -161,6 +171,8 @@ jobs:
           service_name: "${{ inputs.ecs_service }}"
           timeout_cmd: "--timeout"
           timeout: ${{ inputs.timeout }}
+          min: ${{ inputs.min_healthy_percent }}
+          max: ${{ inputs.max_percent }}
         continue-on-error: ${{ inputs.env != 'test' && false || true }}
 
       - name: Update Slack
