@@ -106,6 +106,11 @@ on:
         description: '(Optional) Target platform for docker buildx, e.g. linux/amd64 or linux/arm64. Defaults to linux/amd64. Multi-platform values are not supported by the test build step (docker load only accepts a single platform).'
         required: false
         default: 'linux/amd64'
+      runner:
+        type: string
+        description: '(Optional) GitHub-hosted runner label the build job executes on, e.g. ubuntu-latest or ubuntu-24.04-arm. Defaults to ubuntu-latest. Pick a native runner matching `platforms` to avoid QEMU emulation; confirm the label is available to this org/runner group before using a non-default value.'
+        required: false
+        default: 'ubuntu-latest'
 
     outputs:
       image:
@@ -136,7 +141,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     environment: ${{ inputs.env }}
     name: build ${{ inputs.image_name }}
     outputs:
@@ -166,7 +171,6 @@ jobs:
           echo "*Docker Build Image* - pending " >> slack_status.txt
           echo "*Docker Test Image* - $([[ -n \"$TEST_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
           echo "*Parse and Publish Test Results* - $([[ \"${{ inputs.parser }} == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
-          echo "*SonarQube Scan* - $([[ \"${{ inputs.sonarqube }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
           echo "*Docker Push Image* - pending " >> slack_status.txt
           echo "*Docker Push Image Custom Tag* - pending " >> slack_status.txt
           echo "*Docker Get SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
@@ -245,7 +249,7 @@ jobs:
 
       # Docker image build
       - name: Set up QEMU (cross-platform emulation)
-        if: inputs.platforms != 'linux/amd64'
+        if: inputs.platforms != 'linux/amd64' && !contains(inputs.runner, 'arm')
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
@@ -295,14 +299,6 @@ jobs:
         with:
           report_paths: ${{ inputs.report_paths }}
 
-      - name: SonarQube Scan
-        if: inputs.sonarqube == true
-        id: sonarqube
-        uses: sonarsource/sonarqube-scan-action@v3.0.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
         if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
@@ -313,14 +309,18 @@ jobs:
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's|\*Docker Test Image\* - .*|\*Docker Test Image\* - ${{ steps.test-image.outcome }}|' slack_status.txt;
-            sed -i 's|\*Parse and Publish Test Results\* - .*|\*Parse and Publish Test Results\* - ${{ steps.parser.outcome }}|' slack_status.txt;
-            sed -i 's|\*SonarQube Scan\* - .*|\*SonarQube Scan\* - ${{ steps.sonarqube.outcome }}|' slack_status.txt    
+            sed -i 's|\*Parse and Publish Test Results\* - .*|\*Parse and Publish Test Results\* - ${{ steps.parser.outcome }}|' slack_status.txt
 
 
       # Docker image push
       - name: Docker Remove Old Images
         if: inputs.immutable == true
-        run: aws ecr batch-delete-image --registry-id ${{ env.REGISTRY_ID }} --repository-name ${{ env.APP_NAME }} --image-ids imageTag=${{ inputs.image_build_tag }} imageTag=${{ env.CUSTOM_TAG }} imageTag=cache-${{ inputs.image_build_tag }}
+        run: |
+          IMAGE_IDS="imageTag=${{ inputs.image_build_tag }} imageTag=cache-${{ inputs.image_build_tag }}"
+          if [ -n "${{ env.CUSTOM_TAG }}" ]; then
+            IMAGE_IDS="$IMAGE_IDS imageTag=${{ env.CUSTOM_TAG }}"
+          fi
+          aws ecr batch-delete-image --registry-id ${{ env.REGISTRY_ID }} --repository-name ${{ env.APP_NAME }} --image-ids $IMAGE_IDS
 
       - name: Docker Push Image
         uses: docker/build-push-action@v7
@@ -465,3 +465,29 @@ jobs:
           name: slack-artifact
           path: slack
           overwrite: true
+
+  # Kept out of the `build` job and always pinned to ubuntu-latest: GitHub provisions
+  # containers for every Docker-based action referenced in a job -- including steps
+  # whose `if` evaluates false -- before the job's steps run. sonarqube-scan-action
+  # builds a Dockerfile FROM sonarsource/sonar-scanner-cli, which has no linux/arm64
+  # image, so leaving this step inside `build` breaks every arm64 `runner` build
+  # regardless of whether `sonarqube` is even requested. Sonar scanning is static
+  # analysis of the checked-out source and has no dependency on the target image's
+  # architecture, so it doesn't need to share a job (or a runner) with the build at all.
+  sonarqube:
+    needs: build
+    if: inputs.sonarqube == true
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+    name: sonarqube ${{ inputs.image_name }}
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v3.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
