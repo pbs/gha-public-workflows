@@ -171,7 +171,6 @@ jobs:
           echo "*Docker Build Image* - pending " >> slack_status.txt
           echo "*Docker Test Image* - $([[ -n \"$TEST_COMMAND\" ]] && echo pending  || echo skipped )" >> slack_status.txt
           echo "*Parse and Publish Test Results* - $([[ \"${{ inputs.parser }} == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
-          echo "*SonarQube Scan* - $([[ \"${{ inputs.sonarqube }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
           echo "*Docker Push Image* - pending " >> slack_status.txt
           echo "*Docker Push Image Custom Tag* - pending " >> slack_status.txt
           echo "*Docker Get SBOM File* - $([[ \"${{ inputs.sbom }}\" == \"true\" ]] && echo pending  || echo skipped )" >> slack_status.txt
@@ -300,14 +299,6 @@ jobs:
         with:
           report_paths: ${{ inputs.report_paths }}
 
-      - name: SonarQube Scan
-        if: inputs.sonarqube == true
-        id: sonarqube
-        uses: sonarsource/sonarqube-scan-action@v3.0.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-
       - name: Update Slack
         uses: pbs/gha-public-workflows/.github/actions/slack-message@main
         if: always() && vars.SLACK_CHANNEL_ID != '' && inputs.brief_slack_msg == ''
@@ -318,8 +309,7 @@ jobs:
           update: ${{ steps.slack.outputs.update }}
           status_file_update: |
             sed -i 's|\*Docker Test Image\* - .*|\*Docker Test Image\* - ${{ steps.test-image.outcome }}|' slack_status.txt;
-            sed -i 's|\*Parse and Publish Test Results\* - .*|\*Parse and Publish Test Results\* - ${{ steps.parser.outcome }}|' slack_status.txt;
-            sed -i 's|\*SonarQube Scan\* - .*|\*SonarQube Scan\* - ${{ steps.sonarqube.outcome }}|' slack_status.txt    
+            sed -i 's|\*Parse and Publish Test Results\* - .*|\*Parse and Publish Test Results\* - ${{ steps.parser.outcome }}|' slack_status.txt
 
 
       # Docker image push
@@ -470,3 +460,29 @@ jobs:
           name: slack-artifact
           path: slack
           overwrite: true
+
+  # Kept out of the `build` job and always pinned to ubuntu-latest: GitHub provisions
+  # containers for every Docker-based action referenced in a job -- including steps
+  # whose `if` evaluates false -- before the job's steps run. sonarqube-scan-action
+  # builds a Dockerfile FROM sonarsource/sonar-scanner-cli, which has no linux/arm64
+  # image, so leaving this step inside `build` breaks every arm64 `runner` build
+  # regardless of whether `sonarqube` is even requested. Sonar scanning is static
+  # analysis of the checked-out source and has no dependency on the target image's
+  # architecture, so it doesn't need to share a job (or a runner) with the build at all.
+  sonarqube:
+    needs: build
+    if: inputs.sonarqube == true
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+    name: sonarqube ${{ inputs.image_name }}
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v3.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
