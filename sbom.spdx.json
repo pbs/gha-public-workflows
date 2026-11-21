@@ -1,0 +1,456 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "creationInfo": {
+    "comment": "Hash input, exactly.\ndocumentNamespace = https://spdx.org/spdxdocs/<org>/<repo>/<identity>\nidentity = _projection(doc, drop_created=False)\nindex (finds a recurrence) = _projection(doc, drop_created=True)\ncreated is resolved first, then hashed.\n\ndef _projection(doc, drop_created):\n    d = {k: v for k, v in doc.items() if k != \"documentNamespace\"}\n    if drop_created:      # the INDEX drops it; the IDENTITY never does\n        d[\"creationInfo\"] = {k: v for k, v in d[\"creationInfo\"].items() if k != \"created\"}\n    d[\"packages\"]      = sorted(doc.get(\"packages\", []),\n                                key=lambda p: (p.get(\"SPDXID\",\"\"), p.get(\"name\",\"\")))\n    d[\"relationships\"] = sorted(doc.get(\"relationships\", []),\n                                key=lambda r: (r.get(\"spdxElementId\",\"\"),\n                                               r.get(\"relationshipType\",\"\"),\n                                               r.get(\"relatedSpdxElement\",\"\")))\n    blob = json.dumps(d, separators=(\",\", \":\"), sort_keys=True, ensure_ascii=False)\n    return hashlib.sha256(blob.encode(\"utf-8\")).hexdigest()\n\nSource: gh api repos/<org>/<repo>/dependency-graph/sbom --jq .sbom",
+    "created": "2026-11-21T20:52:21Z",
+    "creators": [
+      "Tool: protobom-v0.0.0-20261117223245-72f62ebd2215+dirty",
+      "Tool: GitHub.com-Dependency-Graph"
+    ]
+  },
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://spdx.org/spdxdocs/pbs/gha-public-workflows/81aecfc1c5d2eae5a12ab89e636a21389f3a5be6cbc71c081084df627462bd5b",
+  "name": "com.github.pbs/gha-public-workflows",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046",
+      "downloadLocation": "git+https://github.com/pbs/gha-public-workflows",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:github/pbs/gha-public-workflows@main",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "com.github.pbs/gha-public-workflows",
+      "versionInfo": "main"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-SonarSource-sonarqube-scan-action-3.0.0-97a326",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/SonarSource/sonarqube-scan-action@3.0.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "SonarSource/sonarqube-scan-action",
+      "versionInfo": "3.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-actions-checkout-4..-bfd09a",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/actions/checkout@4.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "actions/checkout",
+      "versionInfo": "4.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-actions-checkout-6.0.2-7071b7",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/actions/checkout@6.0.2",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "actions/checkout",
+      "versionInfo": "6.0.2"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-actions-checkout-main-014c9c",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/actions/checkout@main",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "actions/checkout",
+      "versionInfo": "main"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-actions-download-artifact-4..-958748",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/actions/download-artifact@4.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "actions/download-artifact",
+      "versionInfo": "4.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-actions-setup-node-4..-0bb21e",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/actions/setup-node@4.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "actions/setup-node",
+      "versionInfo": "4.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-actions-upload-artifact-4..-2c6cf8",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/actions/upload-artifact@4.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "actions/upload-artifact",
+      "versionInfo": "4.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-anchore-sbom-action-0..-6a25f7",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/anchore/sbom-action@0.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "anchore/sbom-action",
+      "versionInfo": "0.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-aws-actions-amazon-ecr-login-2..-9f24a3",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/aws-actions/amazon-ecr-login@2.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "aws-actions/amazon-ecr-login",
+      "versionInfo": "2.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-aws-actions-amazon-ecs-deploy-task-definition-2..-f63fcb",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/aws-actions/amazon-ecs-deploy-task-definition@2.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "aws-actions/amazon-ecs-deploy-task-definition",
+      "versionInfo": "2.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-aws-actions-configure-aws-credentials-6..-773b58",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/aws-actions/configure-aws-credentials@6.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "aws-actions/configure-aws-credentials",
+      "versionInfo": "6.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-docker-build-push-action-7..-7ca3a7",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/docker/build-push-action@7.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "docker/build-push-action",
+      "versionInfo": "7.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-docker-setup-buildx-action-4..-0676fc",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/docker/setup-buildx-action@4.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "docker/setup-buildx-action",
+      "versionInfo": "4.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-docker-setup-qemu-action-3..-03ec32",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/docker/setup-qemu-action@3.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "docker/setup-qemu-action",
+      "versionInfo": "3.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-hashicorp-setup-terraform-3..-78cedd",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/hashicorp/setup-terraform@3.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "hashicorp/setup-terraform",
+      "versionInfo": "3.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-mikepenz-action-junit-report-4..-41c0cf",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/mikepenz/action-junit-report@4.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "mikepenz/action-junit-report",
+      "versionInfo": "4.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-pbsgha-public-workflows.githubactions-secrets-scanning-main-0bb814",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/pbs/gha-public-workflows/.github/actions/secrets-scanning@main",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "pbs/gha-public-workflows/.github/actions/secrets-scanning",
+      "versionInfo": "main"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-pbsgha-public-workflows.githubactions-slack-message-main-90c8ef",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/pbs/gha-public-workflows/.github/actions/slack-message@main",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "pbs/gha-public-workflows/.github/actions/slack-message",
+      "versionInfo": "main"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-sil-org-ecs-deploy-master-f51483",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/sil-org/ecs-deploy@master",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "sil-org/ecs-deploy",
+      "versionInfo": "master"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-slackapi-slack-github-action-3.0.5-36556c",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/slackapi/slack-github-action@3.0.5",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "slackapi/slack-github-action",
+      "versionInfo": "3.0.5"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-stefanzweifel-git-auto-commit-action-5..-83a060",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/stefanzweifel/git-auto-commit-action@5.%2A.%2A",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "stefanzweifel/git-auto-commit-action",
+      "versionInfo": "5.*.*"
+    },
+    {
+      "SPDXID": "SPDXRef-githubactions-trufflesecurity-trufflehog-main-eab2ec",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:githubactions/trufflesecurity/trufflehog@main",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "name": "trufflesecurity/trufflehog",
+      "versionInfo": "main"
+    }
+  ],
+  "relationships": [
+    {
+      "relatedSpdxElement": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-SonarSource-sonarqube-scan-action-3.0.0-97a326",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-actions-checkout-4..-bfd09a",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-actions-checkout-6.0.2-7071b7",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-actions-checkout-main-014c9c",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-actions-download-artifact-4..-958748",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-actions-setup-node-4..-0bb21e",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-actions-upload-artifact-4..-2c6cf8",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-anchore-sbom-action-0..-6a25f7",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-aws-actions-amazon-ecr-login-2..-9f24a3",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-aws-actions-amazon-ecs-deploy-task-definition-2..-f63fcb",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-aws-actions-configure-aws-credentials-6..-773b58",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-docker-build-push-action-7..-7ca3a7",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-docker-setup-buildx-action-4..-0676fc",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-docker-setup-qemu-action-3..-03ec32",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-hashicorp-setup-terraform-3..-78cedd",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-mikepenz-action-junit-report-4..-41c0cf",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-pbsgha-public-workflows.githubactions-secrets-scanning-main-0bb814",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-pbsgha-public-workflows.githubactions-slack-message-main-90c8ef",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-sil-org-ecs-deploy-master-f51483",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-slackapi-slack-github-action-3.0.5-36556c",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-stefanzweifel-git-auto-commit-action-5..-83a060",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-githubactions-trufflesecurity-trufflehog-main-eab2ec",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-github-pbs-gha-public-workflows-main-6d8046"
+    }
+  ],
+  "spdxVersion": "SPDX-2.3"
+}
